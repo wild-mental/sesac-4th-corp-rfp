@@ -5,11 +5,14 @@
 
 ## 열기
 
+**웹:** https://wild-mental.github.io/sesac-4th-corp-rfp/
+
+**로컬:**
 ```bash
-open makji-deck.html
+open index.html
 ```
 
-브라우저에서 바로 열립니다. 빌드 과정이 없습니다.
+빌드 과정이 없습니다. 파일을 열면 바로 실행됩니다.
 
 | 키 | 동작 |
 |---|---|
@@ -27,7 +30,7 @@ open makji-deck.html
 
 | 경로 | 내용 |
 |------|------|
-| `makji-deck.html` | 발표 덱 본체 (12장, 단일 파일) |
+| `index.html` | 발표 덱 본체 (12장, 단일 파일) |
 | `DESIGN.md` | 디자인 정책 SSOT — 컬러 토큰, 타이포, 컴포넌트, 앱 목업 규칙 |
 | `presentation-deck-structure.md` | 발표 스토리텔링 구조 (10장 목차 원안) |
 | `assets/` | 정규화된 앱 화면 목업 7종 (356×700 캔버스) |
@@ -54,7 +57,7 @@ CH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 for n in $(seq 1 12); do
   "$CH" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
     --window-size=1440,810 --virtual-time-budget=2500 \
-    --screenshot="shots/s$(printf '%02d' $n).png" "file://$PWD/makji-deck.html#$n"
+    --screenshot="shots/s$(printf '%02d' $n).png" "file://$PWD/index.html#$n"
 done
 ```
 

@@ -2,7 +2,7 @@
 
 > **단일 진실 원천(SSOT).** 기준 레퍼런스는 `MAKJI_UX소개_슬라이드이미지/` 의 4장(서비스 경험 01~03, 관리자 경험 04).
 > **지수 명칭도 이 레퍼런스를 따른다** — 통밀 브레드 지수 / 크루아상 지수 / 골든 브레드 지수. 구 명칭(마켓·글로벌·골드 브랜드 지수)은 폐기.
-> 이 문서와 어긋나는 스타일이 발견되면 이 문서가 우선한다. 적용 대상: `makji-deck.html`.
+> 이 문서와 어긋나는 스타일이 발견되면 이 문서가 우선한다. 적용 대상: `index.html`.
 
 ---
 
@@ -21,7 +21,7 @@
 
 ## 2. 컬러 토큰
 
-CSS 변수는 `makji-deck.html`의 `:root`에 정의한다. **하드코딩 금지 — 반드시 토큰을 쓴다.**
+CSS 변수는 `index.html`의 `:root`에 정의한다. **하드코딩 금지 — 반드시 토큰을 쓴다.**
 
 ### 바탕 · 글자
 
@@ -245,6 +245,6 @@ CH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 for n in $(seq 1 12); do
   "$CH" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
     --window-size=1440,810 --virtual-time-budget=2500 \
-    --screenshot="shots/s$(printf '%02d' $n).png" "file://$PWD/makji-deck.html#$n"
+    --screenshot="shots/s$(printf '%02d' $n).png" "file://$PWD/index.html#$n"
 done
 ```
