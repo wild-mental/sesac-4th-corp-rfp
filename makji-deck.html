@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAKJI 브레드마켓 · 브레드 인덱스 예측 챌린지 제안</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+/* ============================================================
+   MAKJI 브레드마켓 — 1주차 제안 발표 덱
+   Stage 1440×810 (16:9) · 키보드 ← → 내비게이션
+   ============================================================ */
+
+:root{
+  --bg:#FFFFFF; --paper:#FFFFFF; --paper-2:#F4F8FE;
+  --ink:#101418; --ink-2:#42525F; --ink-3:#64748B;
+  --line:rgba(16,42,74,.11); --line-2:rgba(16,42,74,.06);
+  --forest:#1B5FD9; --forest-2:#3B82E6; --sage:#E4EFFC; --sage-2:#F2F7FE;
+  --gold:#C4841F; --gold-2:#E0A83C; --gold-soft:#FBF1DC;
+  --blue:#3F8FD0; --blue-soft:#EAF3FC;
+  --up:#2E9E5B; --down:#E0463F;
+  --on-brand:#9BC8EE; --on-brand-accent:#FFD98A;   /* 블루 면 위 강조 */
+  --idx-market:#1B5FD9; --idx-global:#2E9E5B; --idx-gold:#C4841F;
+  --sh-1:0 1px 2px rgba(16,42,74,.05), 0 4px 14px rgba(16,42,74,.05);
+  --sh-2:0 2px 4px rgba(16,42,74,.06), 0 12px 34px rgba(16,42,74,.09);
+  --r:14px;
+  --font:"Pretendard Variable","Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:#0B1220;font-family:var(--font);color:var(--ink);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  word-break:keep-all;overflow-wrap:break-word;   /* 한글 어절 단위 줄바꿈 */
+  text-wrap:pretty;                                /* 마지막 줄 고아 어절 방지 */
+  overflow:hidden;
+}
+
+/* ---------- viewport / stage ---------- */
+#viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(125% 100% at 50% 0%, #16233A 0%, #090F1A 72%)}
+#stage{position:relative;width:1440px;height:810px;flex:none;transform-origin:center center;
+  background:var(--bg);border-radius:6px;overflow:hidden;
+  box-shadow:0 26px 76px rgba(0,0,0,.45)}
+
+/* ---------- persistent chrome ---------- */
+.chrome{position:absolute;left:0;right:0;z-index:40;transition:opacity .35s ease;pointer-events:none}
+#stage[data-chrome="off"] .chrome{opacity:0}
+.chrome-top{top:0;height:62px;display:flex;align-items:center;gap:20px;padding:0 56px;
+  border-bottom:1px solid var(--line-2);background:linear-gradient(180deg,rgba(251,248,241,.96),rgba(251,248,241,.72))}
+.rail{display:flex;align-items:center;gap:5px}
+.rail .ch{display:flex;align-items:center;gap:7px;padding:5px 11px 5px 8px;border-radius:999px;
+  font-size:11.5px;font-weight:600;color:var(--ink-3);letter-spacing:-.01em;
+  transition:background .3s ease,color .3s ease;white-space:nowrap}
+.rail .ch b{font-size:10.5px;font-weight:800;letter-spacing:.06em;opacity:.6;font-variant-numeric:tabular-nums}
+.rail .ch.on{background:var(--forest);color:#fff}
+.rail .ch.on b{opacity:.7}
+.rail .ch.done{color:var(--forest-2)}
+.rail .sep{width:12px;height:1px;background:var(--line);flex:none}
+.brandmark{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;
+  letter-spacing:.16em;color:var(--ink-3)}
+.brandmark span{width:5px;height:5px;border-radius:50%;background:var(--blue)}
+.chrome-bot{bottom:0;height:52px;display:flex;align-items:center;padding:0 56px;gap:16px;
+  border-top:1px solid var(--line-2)}
+.tagline{font-size:11.5px;color:var(--ink-3);letter-spacing:-.01em}
+.counter{margin-left:auto;display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums;
+  font-size:12px;color:var(--ink-3);font-weight:600}
+.counter .cur{font-size:19px;font-weight:800;color:var(--forest);letter-spacing:-.02em}
+#bar{position:absolute;left:0;bottom:0;height:2px;background:var(--forest);z-index:45;
+  transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+/* ---------- slides ---------- */
+#slides{position:absolute;inset:0;z-index:20}
+.slide{position:absolute;inset:0;padding:88px 56px 68px;display:flex;flex-direction:column;
+  opacity:0;visibility:hidden;pointer-events:none}
+.slide.active{opacity:1;visibility:visible;pointer-events:auto}
+.slide.full{padding:0}
+[data-anim]{opacity:0;transform:translateY(14px)}
+.slide.active [data-anim]{opacity:1;transform:none;
+  transition:opacity .5s cubic-bezier(.2,.7,.3,1) var(--d,0s), transform .55s cubic-bezier(.2,.7,.3,1) var(--d,0s)}
+
+/* ---------- headings ---------- */
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;
+  letter-spacing:.15em;color:var(--gold);margin-bottom:12px}
+.eyebrow::before{content:"";width:16px;height:1.5px;background:var(--gold);border-radius:2px}
+h1.t{margin:0;font-size:36px;line-height:1.24;font-weight:800;letter-spacing:-.031em;color:var(--ink)}
+h1.t em{font-style:normal;color:var(--forest-2)}
+.lede{margin:11px 0 0;font-size:15.5px;line-height:1.6;color:var(--ink-2);max-width:1080px;letter-spacing:-.015em;
+  text-wrap:balance}
+.lede strong{color:var(--forest);font-weight:700}
+.head{flex:none;margin-bottom:20px}
+
+/* ---------- generic ---------- */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1)}
+.pad{padding:16px 18px}
+.h-lab{font-size:10.5px;font-weight:800;letter-spacing:.13em;color:var(--ink-3);margin:0 0 8px}
+.h-card{font-size:15.5px;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin:0;line-height:1.35}
+.txt{font-size:13px;line-height:1.62;color:var(--ink-2);letter-spacing:-.012em;margin:0}
+.txt.sm{font-size:12.2px;line-height:1.58}
+.txt b{color:var(--ink);font-weight:700}
+.mini{font-size:11px;line-height:1.5;color:var(--ink-3);letter-spacing:-.005em}
+.mini b{color:var(--ink-2);font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;
+  font-size:11.5px;font-weight:700;letter-spacing:-.01em;background:var(--sage-2);color:var(--forest);
+  border:1px solid rgba(27,95,217,.1)}
+.chip.gold{background:var(--gold-soft);color:var(--gold);border-color:rgba(196,132,31,.16)}
+ul.list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+ul.list li{position:relative;padding-left:14px;font-size:12.6px;line-height:1.55;color:var(--ink-2);letter-spacing:-.012em}
+ul.list li::before{content:"";position:absolute;left:2px;top:8px;width:4px;height:4px;border-radius:50%;background:var(--forest-2);opacity:.5}
+ul.list li b{color:var(--ink);font-weight:700}
+.arrow{display:grid;place-items:center;color:var(--ink-3);flex:none}
+.shot{background-repeat:no-repeat;background-color:var(--paper-2)}
+
+/* ============================================================ COVER */
+.cover{background:#fff;color:var(--ink);display:flex;align-items:center;justify-content:center}
+.cover::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(56% 62% at 86% 14%, rgba(27,95,217,.075), transparent 62%),
+             radial-gradient(44% 50% at 4% 92%, rgba(196,132,31,.06), transparent 62%)}
+.cover-inner{position:relative;padding:0 84px;width:100%;display:grid;grid-template-columns:1fr 400px;gap:56px;align-items:center}
+.cover .badge{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;
+  background:var(--sage-2);border:1px solid rgba(27,95,217,.18);
+  font-size:12px;font-weight:700;color:var(--forest);letter-spacing:-.01em}
+.cover .badge i{width:6px;height:6px;border-radius:50%;background:var(--forest);font-style:normal}
+.cover h1{margin:22px 0 0;font-size:56px;line-height:1.2;font-weight:800;letter-spacing:-.038em;color:var(--ink)}
+.cover h1 em{font-style:normal;color:var(--forest)}
+.cover .sub{margin:20px 0 0;font-size:16.5px;line-height:1.62;color:var(--ink-2);letter-spacing:-.015em;max-width:620px}
+.cover .rule{width:52px;height:2px;background:var(--gold-2);border-radius:2px;margin-top:38px}
+.cover .foot{margin-top:16px;font-size:12.5px;color:var(--ink-3);letter-spacing:-.01em}
+.logo-plate{background:var(--sage-2);border:1px solid rgba(27,95,217,.12);border-radius:22px;
+  padding:44px 40px;text-align:center;box-shadow:0 14px 44px rgba(16,42,74,.08)}
+.logo-plate img{width:236px;height:auto;display:block;margin:0 auto}
+.logo-plate .kr{margin-top:20px;padding-top:18px;border-top:1px solid rgba(27,95,217,.16);
+  font-size:14px;font-weight:800;letter-spacing:.02em;color:var(--forest)}
+.logo-plate .en{margin-top:5px;font-size:10.5px;letter-spacing:.2em;color:var(--ink-3);font-weight:700}
+.keyhint{position:absolute;right:84px;bottom:44px;display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--ink-3);z-index:2}
+.kbd{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:6px;
+  background:#fff;border:1px solid var(--line);box-shadow:0 1px 0 rgba(16,42,74,.06);
+  font-size:12px;font-weight:700;color:var(--ink-2);font-family:var(--font)}
+.ovl .kbd{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);
+  box-shadow:none;color:rgba(255,255,255,.82)}
+
+/* ============================================================ S1 유인동기 */
+.s1{display:grid;grid-template-columns:1fr 372px;gap:20px;flex:1;min-height:0}
+.s1-left{display:flex;flex-direction:column;gap:14px;min-height:0}
+.quote{background:linear-gradient(120deg,var(--forest) 0%,#3B82E6 100%);color:#fff;border-radius:var(--r);
+  padding:20px 24px;box-shadow:var(--sh-2);position:relative;overflow:hidden;flex:none}
+.quote::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(155,200,238,.22),transparent 70%)}
+.quote .q-lab{font-size:10.5px;font-weight:800;letter-spacing:.14em;color:rgba(255,255,255,.55);margin-bottom:9px}
+.quote p{margin:0;font-size:20px;line-height:1.5;font-weight:700;letter-spacing:-.03em;text-wrap:balance}
+.quote p b{color:var(--on-brand-accent);font-weight:800}
+.idx-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:1;min-height:0}
+.idx{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:15px 15px 13px;
+  box-shadow:var(--sh-1);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.idx::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--ac)}
+.idx .src{font-size:11.5px;font-weight:700;color:var(--ac);letter-spacing:-.01em}
+.idx .nm{font-size:15px;font-weight:800;letter-spacing:-.025em;color:var(--ink);margin:3px 0 0}
+.idx .val{display:flex;align-items:baseline;gap:9px;margin:11px 0 10px}
+.idx .val .v{font-size:27px;font-weight:800;letter-spacing:-.035em;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+.idx .val .d{font-size:12.5px;font-weight:800;letter-spacing:-.01em}
+.idx .val .d.up{color:var(--up)}
+.idx .val .d.dn{color:var(--down)}
+.idx .spark{height:185px;flex:none;margin:0 0 9px;display:block;width:100%}
+.idx .cap{font-size:10.6px;line-height:1.45;color:var(--ink-3);letter-spacing:-.006em;margin:auto 0 10px}
+.updown{display:flex;gap:6px;margin-top:auto}
+.ud{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;height:29px;border-radius:8px;
+  font-size:11.5px;font-weight:800;letter-spacing:-.01em}
+.ud.u{background:rgba(46,158,91,.1);color:var(--up)}
+.ud.d{background:rgba(224,70,63,.09);color:var(--down)}
+.reward{display:flex;flex-direction:column;overflow:hidden;padding:0;position:relative}
+.reward .rshot{height:214px;background-image:url("assets/reward-box.png");background-color:#fff;
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  border-bottom:1px solid var(--line)}
+.reward .rbody{padding:16px 18px 17px;display:flex;flex-direction:column;gap:9px;flex:1}
+.ribbon{position:absolute;top:14px;left:14px;z-index:2;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.s1-strip{margin-top:14px;display:flex;align-items:center;gap:10px;background:var(--sage-2);
+  border:1px solid rgba(27,95,217,.09);border-radius:12px;padding:12px 18px;flex:none}
+.s1-strip .lb{font-size:10.5px;font-weight:800;letter-spacing:.13em;color:var(--forest);flex:none;
+  padding-right:14px;border-right:1px solid rgba(27,95,217,.14)}
+.flow{display:flex;align-items:center;gap:9px;flex:1}
+.flow .st{display:flex;align-items:center;gap:8px;font-size:12.4px;font-weight:700;color:var(--ink-2);letter-spacing:-.015em}
+.flow .st i{width:20px;height:20px;border-radius:50%;background:#fff;border:1px solid rgba(27,95,217,.16);
+  display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:800;color:var(--forest);flex:none}
+
+/* ============================================================ S2 기획 배경 */
+.chain-head{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr;margin-bottom:11px;align-items:center;flex:none}
+.chain-head .ch-l{text-align:center;font-size:10.5px;font-weight:800;letter-spacing:.13em;color:var(--ink-3)}
+.chain-head .ch-l.acc{color:var(--gold)}
+.mrows{display:flex;flex-direction:column;gap:12px;flex:1;min-height:0}
+.mrow{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr;align-items:stretch;flex:1;min-height:0}
+.mcell{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px 16px;
+  box-shadow:var(--sh-1);display:flex;flex-direction:column;justify-content:center;gap:5px}
+.mcell.goal{background:var(--forest);border-color:transparent}
+.mcell.goal .k{color:#fff}
+.mcell.goal .v{color:rgba(255,255,255,.66)}
+.mcell.plan{background:#fff;border-color:rgba(196,132,31,.28);
+  box-shadow:0 2px 4px rgba(196,132,31,.07),0 10px 26px rgba(196,132,31,.08)}
+.mcell .k{font-size:14.5px;font-weight:800;letter-spacing:-.025em;color:var(--ink)}
+.mcell .v{font-size:12.3px;line-height:1.5;color:var(--ink-2);letter-spacing:-.012em}
+.mcell .v b{color:var(--gold);font-weight:800}
+.s2-foot{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:none}
+.prem{border-left:3px solid var(--gold-2);background:var(--paper);border-radius:0 12px 12px 0;padding:12px 16px;
+  border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.prem .pt{font-size:13.2px;font-weight:800;color:var(--ink);letter-spacing:-.02em;margin-bottom:3px}
+
+/* ============================================================ S3 전·중·후 */
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1;min-height:0}
+.pcol{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1);
+  display:flex;flex-direction:column;overflow:hidden}
+.pcol .ph{display:flex;align-items:center;gap:10px;padding:13px 16px;color:#fff;flex:none}
+.pcol .ph .n{font-size:19px;font-weight:800;letter-spacing:-.03em;opacity:.55;font-variant-numeric:tabular-nums}
+.pcol .ph .tt{font-size:15.5px;font-weight:800;letter-spacing:-.025em}
+.pcol .ph .tg{margin-left:auto;font-size:10.5px;font-weight:600;opacity:.62;letter-spacing:-.01em}
+.pcol.c1 .ph{background:var(--forest)}
+.pcol.c2 .ph{background:var(--forest-2)}
+.pcol.c3 .ph{background:var(--gold)}
+.pcol .pbody{padding:14px 16px 16px;display:grid;grid-template-columns:186px 1fr;gap:14px;flex:1;min-height:0}
+.pcol .pshot{width:186px;height:370px;align-self:start;background-repeat:no-repeat;
+  background-size:contain;background-position:center center}
+.pmeta{display:flex;flex-direction:column;justify-content:space-between;min-height:0;gap:10px}
+.pblk .pl{font-size:9.6px;font-weight:800;letter-spacing:.11em;color:var(--forest-2);margin-bottom:4px}
+.pblk .pv{font-size:11.9px;line-height:1.5;color:var(--ink-2);letter-spacing:-.014em}
+.pblk .pv b{color:var(--ink);font-weight:700}
+.pblk.cta .pl{color:var(--gold)}
+.pblk.cta .pv{display:flex;align-items:center;justify-content:space-between;gap:6px;
+  background:var(--forest);color:#fff;font-weight:700;border-radius:8px;padding:8px 11px;font-size:11.6px}
+.pcol.c3 .pblk.cta .pv{background:var(--gold)}
+.loopbar{margin-top:15px;height:78px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh-1);display:grid;grid-template-columns:1fr 132px 1fr;align-items:center;flex:none;overflow:hidden}
+.loopside{display:flex;align-items:center;gap:12px;padding:0 20px;height:100%}
+.loopside.r{justify-content:flex-end;text-align:right}
+.loopside .lk{font-size:12.5px;font-weight:800;letter-spacing:-.015em;padding:5px 11px;border-radius:999px;flex:none}
+.loopside.l .lk{background:rgba(27,95,217,.09);color:var(--forest)}
+.loopside.r .lk{background:rgba(196,132,31,.11);color:var(--gold)}
+.loopside .lv{font-size:12.2px;color:var(--ink-2);letter-spacing:-.014em;line-height:1.45}
+.loopmid{height:100%;display:grid;place-items:center;background:var(--sage-2);
+  border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.loopmid img{width:82px;height:auto;display:block}
+
+/* ============================================================ S4 핵심 콘텐츠 */
+.s4{display:grid;grid-template-columns:290px 1fr;gap:20px;flex:1;min-height:0}
+.s4-left{display:flex;flex-direction:column;gap:12px;min-height:0}
+.phone{height:400px;flex:none;background-image:url("assets/ux-predict.png");background-repeat:no-repeat;
+  background-size:contain;background-position:center center}
+.shotnote{flex:1;display:flex;flex-direction:column;justify-content:center}
+.shotnote ul.list li{font-size:12.2px}
+.s4-right{display:flex;flex-direction:column;gap:12px;min-height:0}
+.s4-right>.tbl{flex:1.3}
+.s4-right>.steps{flex:.9}
+.s4-right>.formula{flex:.66}
+.s4-right>.card{flex:.84}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;background:var(--paper);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-1)}
+.tbl th{background:var(--sage-2);font-size:10.5px;font-weight:800;letter-spacing:.1em;color:var(--forest);
+  text-align:left;padding:9px 14px;border-bottom:1px solid var(--line)}
+.tbl td{padding:11px 14px;font-size:12.6px;color:var(--ink-2);border-bottom:1px solid var(--line-2);
+  letter-spacing:-.014em;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.nm{font-weight:800;color:var(--ink);font-size:13px}
+.dot-ac{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:middle}
+.steps{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--sh-1);overflow:hidden}
+.steps .sp{flex:1;padding:12px 13px;border-right:1px solid var(--line-2);display:flex;flex-direction:column;
+  justify-content:center;gap:4px}
+.steps .sp:last-child{border-right:0}
+.steps .sp .n{font-size:9.5px;font-weight:800;letter-spacing:.1em;color:var(--gold)}
+.steps .sp .h{font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.022em}
+.steps .sp .d{font-size:11.4px;line-height:1.45;color:var(--ink-3);letter-spacing:-.008em}
+.formula{display:flex;align-items:center;gap:14px;background:var(--forest);border-radius:var(--r);padding:15px 18px;color:#fff}
+.formula .fk{font-size:11px;font-weight:800;letter-spacing:.12em;color:rgba(255,255,255,.55);flex:none}
+.formula .fe{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.formula .fe u{text-decoration:none;color:var(--on-brand)}
+.formula .fn{margin-left:auto;font-size:11.5px;color:rgba(255,255,255,.6);letter-spacing:-.01em;text-align:right;line-height:1.45}
+.week{display:flex;align-items:center;gap:8px}
+.week .d{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:11.5px;font-weight:800;
+  background:var(--sage-2);color:var(--forest);border:1px solid rgba(27,95,217,.1)}
+.week .d.on{background:var(--forest);color:#fff;border-color:transparent}
+
+/* ============================================================ S5 주요 UX */
+.scenes{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;flex:1;min-height:0}
+.scene{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1);
+  display:flex;flex-direction:column;overflow:hidden}
+.scene .sh{padding:11px 15px 10px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:9px;flex:none}
+.scene .sh .no{width:22px;height:22px;border-radius:7px;background:var(--forest);color:#fff;display:grid;place-items:center;
+  font-size:11px;font-weight:800;flex:none}
+.scene .sh .st{font-size:14.5px;font-weight:800;letter-spacing:-.025em}
+.scene .sb{padding:12px 12px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;min-height:0}
+.wf{width:160px;height:320px;flex:none;background-repeat:no-repeat;
+  background-size:contain;background-position:center center}
+.fb{display:flex;align-items:flex-start;gap:7px;background:var(--sage-2);border-radius:9px;padding:10px 11px;
+  width:100%;margin-top:auto;font-size:11.4px;line-height:1.5;color:var(--forest);letter-spacing:-.01em;font-weight:600;flex:none}
+.fb svg{width:13px;height:13px;flex:none;margin-top:1px}
+.s5-foot{margin-top:14px;display:grid;grid-template-columns:88px repeat(3,1fr);gap:12px;align-items:center;flex:none;
+  background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 18px;box-shadow:var(--sh-1)}
+.s5-foot .fl{font-size:10.5px;font-weight:800;letter-spacing:.12em;color:var(--forest);line-height:1.5}
+.pr{display:flex;align-items:center;gap:9px}
+.pr i{width:24px;height:24px;border-radius:7px;background:var(--gold-soft);color:var(--gold);display:grid;place-items:center;
+  font-style:normal;font-size:11px;font-weight:800;flex:none}
+.pr .pt{font-size:12.6px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.pr .pd{font-size:11.3px;color:var(--ink-3);letter-spacing:-.008em}
+
+/* ============================================================ S6 외부데이터 */
+.s6{display:grid;grid-template-columns:1fr 316px;gap:18px;flex:1;min-height:0}
+.s6-left{display:flex;flex-direction:column;min-height:0}
+.tblwrap{flex:1;min-height:0;display:flex}
+.tbl.big{flex:1;height:100%}
+.tbl.big td{padding:14px 15px;font-size:12.8px}
+.tbl.big th{padding:10px 15px}
+.tbl.big td.nm{font-size:13.4px}
+.pill-src{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:var(--ink);font-size:12.8px}
+.pill-src i{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-style:normal;
+  font-size:10px;font-weight:800;flex:none}
+.dchain{display:flex;flex-direction:column;justify-content:space-between;min-height:0}
+.dnode{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 15px;box-shadow:var(--sh-1)}
+.dnode .dn{font-size:9.8px;font-weight:800;letter-spacing:.12em;color:var(--gold);margin-bottom:5px}
+.dnode .dt{font-size:13.6px;font-weight:800;color:var(--ink);letter-spacing:-.024em;margin-bottom:4px}
+.dnode .dd{font-size:11.8px;line-height:1.5;color:var(--ink-2);letter-spacing:-.012em}
+.dsep{display:grid;place-items:center;color:var(--ink-3);font-size:13px}
+.warn{margin-top:14px;background:#fff;border:1px solid rgba(196,132,31,.3);border-left:3px solid var(--gold-2);
+  border-radius:0 12px 12px 0;padding:14px 18px;display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center;flex:none}
+.warn .wt{font-size:13px;font-weight:800;color:var(--gold);letter-spacing:-.02em;display:flex;align-items:center;gap:7px}
+.warn .wt svg{width:15px;height:15px;flex:none}
+.warn .wl{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.warn .wl div{font-size:12.1px;line-height:1.5;color:var(--ink-2);letter-spacing:-.012em;text-wrap:balance}
+.warn .wl b{display:block;color:var(--ink);font-weight:700;font-size:12.3px;margin-bottom:2px}
+
+/* ============================================================ S7 아키텍처 */
+.archwrap{flex:1;min-height:0;display:grid;grid-template-columns:1fr 300px;gap:14px}
+.archimg{flex:1;min-height:0;position:relative;background:#fff;border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh-2);overflow:hidden}
+.archimg img{position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);object-fit:contain;display:block}
+.flow4{display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:0}
+.fc{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 14px;box-shadow:var(--sh-1);
+  display:flex;align-items:flex-start;gap:10px}
+.fc .fn{width:21px;height:21px;border-radius:50%;background:var(--forest);color:#fff;display:grid;place-items:center;
+  font-size:10.5px;font-weight:800;flex:none;margin-top:1px}
+.fc .ft{font-size:12.8px;font-weight:800;color:var(--ink);letter-spacing:-.022em;margin-bottom:2px}
+.fc .fd{font-size:11.4px;line-height:1.45;color:var(--ink-3);letter-spacing:-.008em}
+
+/* ============================================================ S8 기대효과 */
+.efwrap{flex:1;min-height:0;display:flex}
+.eff{width:100%;flex:1;height:100%;border-collapse:separate;border-spacing:0;background:var(--paper);
+  border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-1)}
+.eff th{background:var(--forest);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.12em;
+  text-align:left;padding:11px 16px}
+.eff th:nth-child(2),.eff th:nth-child(3){background:#3B82E6}
+.eff th:last-child{background:var(--gold)}
+.eff td{padding:11px 16px;font-size:12.6px;color:var(--ink-2);border-bottom:1px solid var(--line-2);
+  letter-spacing:-.014em;line-height:1.5;vertical-align:middle}
+.eff tr:last-child td{border-bottom:0}
+.eff td.a{font-weight:700;color:var(--ink)}
+.eff td.c{font-weight:800;color:var(--forest)}
+.eff td.m{color:var(--gold);font-weight:700;font-size:12.2px}
+.eff tbody tr:nth-child(even) td{background:rgba(228,239,252,.28)}
+.s8-foot{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:none}
+.nsm{background:linear-gradient(120deg,var(--forest),#3B82E6);color:#fff;border-radius:12px;padding:14px 18px;
+  display:flex;align-items:center;gap:16px}
+.nsm .nl{font-size:10.5px;font-weight:800;letter-spacing:.12em;color:rgba(255,255,255,.55);flex:none}
+.nsm .nv{font-size:14.5px;font-weight:800;letter-spacing:-.024em;line-height:1.4}
+.nsm .nv u{text-decoration:none;color:var(--on-brand)}
+
+/* ============================================================ S9 범위 */
+.scope{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1;min-height:0}
+.sc{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1);
+  display:flex;flex-direction:column;overflow:hidden}
+.sc .sch{padding:13px 16px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);flex:none}
+.sc .sch .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none}
+.sc .sch .ic svg{width:14px;height:14px}
+.sc .sch .t{font-size:15px;font-weight:800;letter-spacing:-.025em;color:var(--ink)}
+.sc .sch .g{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--ink-3);letter-spacing:-.01em}
+.sc.a .sch{background:var(--forest)}.sc.a .sch .t{color:#fff}.sc.a .sch .g{color:rgba(255,255,255,.55)}
+.sc.a .sch .ic{background:rgba(255,255,255,.16);color:#fff}
+.sc.b .sch .ic{background:var(--sage);color:var(--forest)}
+.sc.c .sch .ic{background:var(--gold-soft);color:var(--gold)}
+.sc .scb{padding:14px 16px 16px;flex:1;min-height:0;display:flex;flex-direction:column}
+.sc .scb ul.list{gap:9px}
+.sc .scb .mini{margin-top:auto;padding-top:12px}
+.s9-foot{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:none}
+.fbox{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px;box-shadow:var(--sh-1)}
+.fbox .fh{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.1em;margin-bottom:8px}
+.fbox.ok .fh{color:var(--up)}
+.fbox.next .fh{color:var(--gold)}
+.fbox .fh svg{width:13px;height:13px;flex:none}
+.fbox ul.list li{font-size:12px}
+
+/* ============================================================ S10 확정 사항 */
+.dec{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;flex:1;min-height:0}
+.dc{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-1);
+  display:flex;flex-direction:column;overflow:hidden}
+.dc .dch{padding:12px 14px;background:var(--sage-2);border-bottom:1px solid var(--line);flex:none}
+.dc .dch .qn{font-size:9.8px;font-weight:800;letter-spacing:.11em;color:var(--gold);margin-bottom:4px}
+.dc .dch .qt{font-size:14px;font-weight:800;letter-spacing:-.024em;color:var(--ink);line-height:1.32}
+.dc .dcb{padding:13px 14px 15px;display:flex;flex-direction:column;gap:9px;flex:1;min-height:0}
+.prop{background:rgba(27,95,217,.055);border-radius:9px;padding:10px 11px}
+.prop .pl{font-size:9.5px;font-weight:800;letter-spacing:.1em;color:var(--forest);margin-bottom:4px}
+.prop .pv{font-size:12.1px;line-height:1.5;color:var(--ink-2);letter-spacing:-.012em}
+.need .nl,.impact .nl,.defer .nl{font-size:9.5px;font-weight:800;letter-spacing:.1em;margin-bottom:4px}
+.need .nl{color:var(--gold)}
+.impact .nl{color:var(--ink-3)}
+.need .nv,.impact .nv,.defer .nv{font-size:11.9px;line-height:1.5;color:var(--ink-3);letter-spacing:-.008em}
+.impact{border-top:1px dashed var(--line);padding-top:9px;margin-top:auto}
+.defer .nl{color:var(--forest-2)}
+.defer .nv{color:var(--ink-2)}
+.impact .nv{color:var(--ink-2)}
+
+/* timeline (S6 · S10 공용) */
+.timeline{margin-top:14px;flex:none;background:var(--paper);border:1px solid var(--line);border-radius:12px;
+  padding:13px 18px;box-shadow:var(--sh-1);display:grid;grid-template-columns:138px 1fr;gap:18px;align-items:center}
+.timeline .tl{font-size:10.5px;font-weight:800;letter-spacing:.11em;color:var(--forest);line-height:1.5}
+.timeline .tl span{display:block;font-size:10px;font-weight:600;color:var(--ink-3);letter-spacing:0;margin-top:2px}
+.track{display:flex;position:relative}
+.track::before{content:"";position:absolute;left:6px;right:6px;top:11px;height:2px;background:var(--line);border-radius:2px}
+.tstep{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:0 4px}
+.tstep i{width:12px;height:12px;border-radius:50%;background:#fff;border:2.5px solid var(--forest);z-index:1;font-style:normal;margin-top:5px}
+.tstep.f i{background:var(--gold);border-color:var(--gold)}
+.tstep .tw{font-size:11.8px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.tstep .td{font-size:10.8px;color:var(--ink-3);letter-spacing:-.006em;line-height:1.35}
+
+/* ============================================================ CLOSING */
+.closing{background:#fff;color:var(--ink);display:flex;align-items:center;justify-content:center}
+.closing::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(52% 58% at 50% 26%, rgba(27,95,217,.07), transparent 64%),
+             radial-gradient(42% 48% at 84% 88%, rgba(196,132,31,.055), transparent 64%)}
+.cl-inner{position:relative;text-align:center;width:100%;padding:0 84px}
+.cl-plate{display:inline-block;margin:0 auto 44px}
+.cl-plate img{width:196px;height:auto;display:block}
+.closing h2{margin:0;font-size:52px;font-weight:800;letter-spacing:-.038em;line-height:1.24;color:var(--ink)}
+.closing h2 em{font-style:normal;color:var(--forest)}
+.closing .crule{width:52px;height:2px;background:var(--gold-2);border-radius:2px;margin:38px auto 0}
+
+/* ============================================================ OVERLAYS */
+.ovl{position:absolute;inset:0;z-index:80;background:rgba(9,17,30,.94);backdrop-filter:blur(10px);
+  display:none;flex-direction:column;padding:44px 56px;color:#fff}
+.ovl.open{display:flex}
+.ovl h3{margin:0 0 4px;font-size:20px;font-weight:800;letter-spacing:-.028em}
+.ovl .osub{font-size:12.5px;color:rgba(255,255,255,.45);margin-bottom:24px;letter-spacing:-.01em}
+.ogrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;align-content:start}
+.oc{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.11);border-radius:11px;padding:13px 14px;
+  cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease;
+  display:flex;flex-direction:column;gap:7px;min-height:104px;text-align:left;font-family:var(--font)}
+.oc:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.24);transform:translateY(-2px)}
+.oc.on{background:rgba(155,200,238,.16);border-color:rgba(155,200,238,.5)}
+.oc .on-num{font-size:10px;font-weight:800;letter-spacing:.12em;color:rgba(255,255,255,.42);font-variant-numeric:tabular-nums}
+.oc .on-t{font-size:12.8px;font-weight:700;line-height:1.42;letter-spacing:-.018em;color:rgba(255,255,255,.94)}
+.oc .on-c{margin-top:auto;font-size:10px;font-weight:700;letter-spacing:.06em;color:rgba(155,200,238,.75)}
+.hgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px;max-width:780px}
+.hrow{display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.hrow .hk{display:flex;gap:5px;align-items:center;flex:none;min-width:140px}
+.hrow .hd{font-size:13px;color:rgba(255,255,255,.72);letter-spacing:-.014em}
+.ovl .oclose{position:absolute;top:40px;right:56px;font-size:12px;color:rgba(255,255,255,.4);display:flex;align-items:center;gap:8px}
+
+.zone{position:absolute;top:62px;bottom:52px;width:12%;z-index:30;cursor:pointer;opacity:0}
+.zone.prev{left:0}.zone.next{right:0}
+
+@media (prefers-reduced-motion: reduce){
+  [data-anim],.slide.active [data-anim]{transition:none!important;transform:none!important;opacity:1!important}
+  #bar{transition:none}
+}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- print → PDF ---------- */
+@media print{
+  @page{size:1440px 810px;margin:0}
+  body,#viewport{background:#fff;overflow:visible;position:static;display:block}
+  #stage{transform:none!important;box-shadow:none;border-radius:0;width:1440px;height:810px;overflow:visible}
+  #stage::after{display:none}
+  #slides{position:static}
+  .slide{position:relative;opacity:1!important;visibility:visible!important;width:1440px;height:810px;
+    page-break-after:always;break-after:page}
+  [data-anim]{opacity:1!important;transform:none!important}
+  .chrome,#bar,.zone,.ovl{display:none!important}
+  .slide:not(.full){padding-top:56px}
+}
+</style>
+</head>
+<body>
+
+<div id="viewport">
+<div id="stage" data-chrome="off">
+
+  <div class="chrome chrome-top">
+    <nav class="rail" id="rail" aria-label="발표 챕터">
+      <span class="ch" data-ch="1"><b>01</b>컨셉</span><span class="sep"></span>
+      <span class="ch" data-ch="2"><b>02</b>경험</span><span class="sep"></span>
+      <span class="ch" data-ch="3"><b>03</b>구현</span><span class="sep"></span>
+      <span class="ch" data-ch="4"><b>04</b>효과·검증</span><span class="sep"></span>
+      <span class="ch" data-ch="5"><b>05</b>의사결정</span>
+    </nav>
+    <div class="brandmark"><span></span>MAKJI 브레드마켓</div>
+  </div>
+
+  <div class="chrome chrome-bot">
+    <div class="tagline">좋은 하루는 좋은 빵으로부터 — 시장을 읽는 작은 예측이, 더 맛있는 내일을 만듭니다</div>
+    <div class="counter"><span class="cur" id="cur">01</span><span>/</span><span id="tot">12</span></div>
+  </div>
+  <div id="bar" style="width:0"></div>
+
+  <div class="zone prev" id="zprev" aria-hidden="true"></div>
+  <div class="zone next" id="znext" aria-hidden="true"></div>
+
+  <main id="slides">
+
+  <!-- ─────────── 00 · COVER ─────────── -->
+  <section class="slide full cover" data-ch="0" data-title="MAKJI 브레드마켓 제안 발표">
+    <div class="cover-inner">
+      <div>
+        <div class="badge" data-anim style="--d:.05s"><i></i>1주차 제안 발표</div>
+        <h1 data-anim style="--d:.12s">시장을 읽는 작은 예측이,<br><em>더 맛있는 내일</em>을 만듭니다</h1>
+        <p class="sub" data-anim style="--d:.2s">금융시장 지수 등락을 일일 브레드마켓 3종 지수 업다운 예측으로<br>주간 예측 랭킹 기반의 프리미엄 빵 사은품 이벤트</p>
+        <div class="rule" data-anim style="--d:.28s"></div>
+        <!-- EDIT: 팀명·발표일은 아래 한 줄만 수정하면 됩니다 -->
+        <div class="foot" data-anim style="--d:.32s">RFP 발주 기업 대상 기획안 · 브레드 인덱스 예측 서비스 제안</div>
+      </div>
+      <div class="logo-plate" data-anim style="--d:.24s">
+        <img src="makji-logo.png" alt="MAKJI — Wellness Bakery &amp; Dessert 로고">
+        <div class="kr">MAKJI 브레드마켓</div>
+        <div class="en">BREAD MARKET FOR A BETTER TOMORROW</div>
+      </div>
+    </div>
+    <div class="keyhint" data-anim style="--d:.5s">
+      <span class="kbd">←</span><span class="kbd">→</span><span>로 넘기기</span><span>·</span>
+      <span class="kbd">O</span><span>개요</span><span>·</span><span class="kbd">?</span><span>도움말</span>
+    </div>
+  </section>
+
+  <!-- ─────────── 01 · 유인동기 ─────────── -->
+  <section class="slide" data-ch="1" data-title="우리가 제안하는 소비자 방문 유인동기">
+    <div class="head">
+      <div class="eyebrow" data-anim>01 · 컨셉</div>
+      <h1 class="t" data-anim style="--d:.06s">우리가 제안하는 MAKJI 브레드마켓의 <em>소비자 방문 유인동기</em></h1>
+    </div>
+
+    <div class="s1">
+      <div class="s1-left">
+        <div class="quote" data-anim style="--d:.12s">
+          <p>금융시장 현황에서 파생된 <b>브레드마켓 3종 지수</b>의 업다운을 예측하고<br>상위 랭킹 당첨 시 <b>‘프리미엄 브레드 7일 구독권’</b>으로 빵을 통한 미식 웰니스를 경험하는 주간 챌린지</p>
+        </div>
+
+        <div class="idx-grid">
+          <div class="idx" data-anim style="--ac:var(--idx-market); --d:.18s">
+            <div class="src">KOSPI 지수 연동</div>
+            <div class="nm">통밀 브레드 지수</div>
+            <div class="val"><span class="v">102.4</span><span class="d up">▲ 1.2%</span></div>
+            <svg class="spark" viewBox="0 0 280 185" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="gMarket" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1B5FD9" stop-opacity=".20"/><stop offset="100%" stop-color="#1B5FD9" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="12.0" x2="280" y2="12.0" stroke="rgba(16,42,74,.07)" stroke-width="1"/><line x1="0" y1="92.5" x2="280" y2="92.5" stroke="rgba(16,42,74,.07)" stroke-width="1"/><line x1="0" y1="173.0" x2="280" y2="173.0" stroke="rgba(16,42,74,.07)" stroke-width="1"/><path d="M0,141.0 L4.6,149.8 L9.2,157.9 L13.8,165.3 L18.4,173.0 L23.0,155.8 L27.5,148.4 L32.1,144.6 L36.7,136.6 L41.3,153.2 L45.9,147.6 L50.5,131.8 L55.1,117.6 L59.7,129.6 L64.3,157.6 L68.9,154.9 L73.4,150.3 L78.0,134.3 L82.6,142.7 L87.2,144.7 L91.8,138.7 L96.4,128.4 L101.0,135.0 L105.6,129.1 L110.2,127.3 L114.8,112.1 L119.3,115.3 L123.9,103.6 L128.5,116.5 L133.1,101.8 L137.7,111.5 L142.3,110.7 L146.9,102.8 L151.5,103.1 L156.1,86.2 L160.7,87.2 L165.2,70.9 L169.8,64.7 L174.4,56.0 L179.0,55.7 L183.6,61.0 L188.2,34.9 L192.8,26.3 L197.4,25.6 L202.0,21.5 L206.6,18.7 L211.1,16.5 L215.7,33.9 L220.3,37.6 L224.9,35.6 L229.5,44.3 L234.1,53.4 L238.7,65.6 L243.3,67.7 L247.9,57.3 L252.5,61.3 L257.0,62.4 L261.6,53.4 L266.2,50.1 L270.8,35.1 L275.4,21.5 L280.0,12.0 L280.0,185.0 L0,185.0 Z" fill="url(#gMarket)"/><polyline points="0.0,141.0 4.6,149.8 9.2,157.9 13.8,165.3 18.4,173.0 23.0,155.8 27.5,148.4 32.1,144.6 36.7,136.6 41.3,153.2 45.9,147.6 50.5,131.8 55.1,117.6 59.7,129.6 64.3,157.6 68.9,154.9 73.4,150.3 78.0,134.3 82.6,142.7 87.2,144.7 91.8,138.7 96.4,128.4 101.0,135.0 105.6,129.1 110.2,127.3 114.8,112.1 119.3,115.3 123.9,103.6 128.5,116.5 133.1,101.8 137.7,111.5 142.3,110.7 146.9,102.8 151.5,103.1 156.1,86.2 160.7,87.2 165.2,70.9 169.8,64.7 174.4,56.0 179.0,55.7 183.6,61.0 188.2,34.9 192.8,26.3 197.4,25.6 202.0,21.5 206.6,18.7 211.1,16.5 215.7,33.9 220.3,37.6 224.9,35.6 229.5,44.3 234.1,53.4 238.7,65.6 243.3,67.7 247.9,57.3 252.5,61.3 257.0,62.4 261.6,53.4 266.2,50.1 270.8,35.1 275.4,21.5 280.0,12.0" fill="none" stroke="#1B5FD9" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="280.0" cy="12.0" r="4.5" fill="#fff"/><circle cx="280.0" cy="12.0" r="2.8" fill="#1B5FD9"/></svg>
+            <div class="cap">국내 시장의 오늘 온도 · <b>최근 20 영업일 · 수치는 기획 예시</b></div>
+            <div class="updown"><span class="ud u">UP ▲</span><span class="ud d">DOWN ▼</span></div>
+          </div>
+          <div class="idx" data-anim style="--ac:var(--idx-global); --d:.23s">
+            <div class="src">원/달러 환율 연동</div>
+            <div class="nm">크루아상 지수</div>
+            <div class="val"><span class="v">98.7</span><span class="d dn">▼ 0.5%</span></div>
+            <svg class="spark" viewBox="0 0 280 185" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="gFx" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2E9E5B" stop-opacity=".20"/><stop offset="100%" stop-color="#2E9E5B" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="12.0" x2="280" y2="12.0" stroke="rgba(16,42,74,.07)" stroke-width="1"/><line x1="0" y1="92.5" x2="280" y2="92.5" stroke="rgba(16,42,74,.07)" stroke-width="1"/><line x1="0" y1="173.0" x2="280" y2="173.0" stroke="rgba(16,42,74,.07)" stroke-width="1"/><path d="M0,129.6 L4.6,134.7 L9.2,141.5 L13.8,131.3 L18.4,133.2 L23.0,160.1 L27.5,129.7 L32.1,92.1 L36.7,59.8 L41.3,89.2 L45.9,107.1 L50.5,79.1 L55.1,67.5 L59.7,24.4 L64.3,12.0 L68.9,70.4 L73.4,119.1 L78.0,107.0 L82.6,119.5 L87.2,117.6 L91.8,99.9 L96.4,106.0 L101.0,107.2 L105.6,104.5 L110.2,106.8 L114.8,116.8 L119.3,106.8 L123.9,79.1 L128.5,88.8 L133.1,89.7 L137.7,94.9 L142.3,104.1 L146.9,126.4 L151.5,138.3 L156.1,109.5 L160.7,132.4 L165.2,169.7 L169.8,154.8 L174.4,144.2 L179.0,152.7 L183.6,167.0 L188.2,133.1 L192.8,133.7 L197.4,110.9 L202.0,100.0 L206.6,83.4 L211.1,137.1 L215.7,155.8 L220.3,156.9 L224.9,157.6 L229.5,173.0 L234.1,155.6 L238.7,150.5 L243.3,136.4 L247.9,127.0 L252.5,126.0 L257.0,104.1 L261.6,127.1 L266.2,125.6 L270.8,117.9 L275.4,133.8 L280.0,143.3 L280.0,185.0 L0,185.0 Z" fill="url(#gFx)"/><polyline points="0.0,129.6 4.6,134.7 9.2,141.5 13.8,131.3 18.4,133.2 23.0,160.1 27.5,129.7 32.1,92.1 36.7,59.8 41.3,89.2 45.9,107.1 50.5,79.1 55.1,67.5 59.7,24.4 64.3,12.0 68.9,70.4 73.4,119.1 78.0,107.0 82.6,119.5 87.2,117.6 91.8,99.9 96.4,106.0 101.0,107.2 105.6,104.5 110.2,106.8 114.8,116.8 119.3,106.8 123.9,79.1 128.5,88.8 133.1,89.7 137.7,94.9 142.3,104.1 146.9,126.4 151.5,138.3 156.1,109.5 160.7,132.4 165.2,169.7 169.8,154.8 174.4,144.2 179.0,152.7 183.6,167.0 188.2,133.1 192.8,133.7 197.4,110.9 202.0,100.0 206.6,83.4 211.1,137.1 215.7,155.8 220.3,156.9 224.9,157.6 229.5,173.0 234.1,155.6 238.7,150.5 243.3,136.4 247.9,127.0 252.5,126.0 257.0,104.1 261.6,127.1 266.2,125.6 270.8,117.9 275.4,133.8 280.0,143.3" fill="none" stroke="#2E9E5B" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="280.0" cy="143.3" r="4.5" fill="#fff"/><circle cx="280.0" cy="143.3" r="2.8" fill="#2E9E5B"/></svg>
+            <div class="cap">해외에서 건너오는 재료의 값 · <b>최근 20 영업일 · 수치는 기획 예시</b></div>
+            <div class="updown"><span class="ud u">UP ▲</span><span class="ud d">DOWN ▼</span></div>
+          </div>
+          <div class="idx" data-anim style="--ac:var(--idx-gold); --d:.28s">
+            <div class="src">금 시세 연동</div>
+            <div class="nm">골든 브레드 지수</div>
+            <div class="val"><span class="v">105.1</span><span class="d up">▲ 0.8%</span></div>
+            <svg class="spark" viewBox="0 0 280 185" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C4841F" stop-opacity=".20"/><stop offset="100%" stop-color="#C4841F" stop-opacity="0"/></linearGradient></defs><line x1="0" y1="12.0" x2="280" y2="12.0" stroke="rgba(16,42,74,.07)" stroke-width="1"/><line x1="0" y1="92.5" x2="280" y2="92.5" stroke="rgba(16,42,74,.07)" stroke-width="1"/><line x1="0" y1="173.0" x2="280" y2="173.0" stroke="rgba(16,42,74,.07)" stroke-width="1"/><path d="M0,170.2 L4.6,173.0 L9.2,165.0 L13.8,160.3 L18.4,158.2 L23.0,165.6 L27.5,160.2 L32.1,156.1 L36.7,149.8 L41.3,161.6 L45.9,153.7 L50.5,141.0 L55.1,134.6 L59.7,123.1 L64.3,116.4 L68.9,117.2 L73.4,110.3 L78.0,113.9 L82.6,110.7 L87.2,110.6 L91.8,107.6 L96.4,104.9 L101.0,105.9 L105.6,104.3 L110.2,102.3 L114.8,105.3 L119.3,106.0 L123.9,103.2 L128.5,99.1 L133.1,97.2 L137.7,98.3 L142.3,96.2 L146.9,94.7 L151.5,96.4 L156.1,105.9 L160.7,99.0 L165.2,99.3 L169.8,97.0 L174.4,90.5 L179.0,96.2 L183.6,86.8 L188.2,91.8 L192.8,85.0 L197.4,76.4 L202.0,68.7 L206.6,67.4 L211.1,72.4 L215.7,62.4 L220.3,65.5 L224.9,53.2 L229.5,41.9 L234.1,36.6 L238.7,43.0 L243.3,33.9 L247.9,37.9 L252.5,28.4 L257.0,22.4 L261.6,21.4 L266.2,13.3 L270.8,18.2 L275.4,17.2 L280.0,12.0 L280.0,185.0 L0,185.0 Z" fill="url(#gGold)"/><polyline points="0.0,170.2 4.6,173.0 9.2,165.0 13.8,160.3 18.4,158.2 23.0,165.6 27.5,160.2 32.1,156.1 36.7,149.8 41.3,161.6 45.9,153.7 50.5,141.0 55.1,134.6 59.7,123.1 64.3,116.4 68.9,117.2 73.4,110.3 78.0,113.9 82.6,110.7 87.2,110.6 91.8,107.6 96.4,104.9 101.0,105.9 105.6,104.3 110.2,102.3 114.8,105.3 119.3,106.0 123.9,103.2 128.5,99.1 133.1,97.2 137.7,98.3 142.3,96.2 146.9,94.7 151.5,96.4 156.1,105.9 160.7,99.0 165.2,99.3 169.8,97.0 174.4,90.5 179.0,96.2 183.6,86.8 188.2,91.8 192.8,85.0 197.4,76.4 202.0,68.7 206.6,67.4 211.1,72.4 215.7,62.4 220.3,65.5 224.9,53.2 229.5,41.9 234.1,36.6 238.7,43.0 243.3,33.9 247.9,37.9 252.5,28.4 257.0,22.4 261.6,21.4 266.2,13.3 270.8,18.2 275.4,17.2 280.0,12.0" fill="none" stroke="#C4841F" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="280.0" cy="12.0" r="4.5" fill="#fff"/><circle cx="280.0" cy="12.0" r="2.8" fill="#C4841F"/></svg>
+            <div class="cap">프리미엄 라인의 기준선 · <b>최근 20 영업일 · 수치는 기획 예시</b></div>
+            <div class="updown"><span class="ud u">UP ▲</span><span class="ud d">DOWN ▼</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card reward" data-anim style="--d:.2s">
+        <span class="chip gold ribbon">주간 TOP 랭커</span>
+        <div class="rshot" role="img" aria-label="프리미엄 브랜드 구독 리워드 패키지"></div>
+        <div class="rbody">
+          <div class="h-lab">대표 리워드</div>
+          <h3 class="h-card">다음 주 7일<br>프리미엄 브랜드 구독권</h3>
+          <p class="txt sm">주간 정확도 상위 랭커에게 발급됩니다. 참가비는 없고, 보상은 <b>실제 제품 경험</b>으로 돌려드립니다.</p>
+          <div style="display:flex;gap:6px;margin-top:auto;padding-top:10px">
+            <span class="chip">참가비 0원</span><span class="chip">매주 리셋</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s1-strip" data-anim style="--d:.36s">
+      <div class="lb">핵심 참여 경험</div>
+      <div class="flow">
+        <span class="st"><i>1</i>3종 지수 확인</span><span class="arrow">→</span>
+        <span class="st"><i>2</i>매일 UP / DOWN 선택</span><span class="arrow">→</span>
+        <span class="st"><i>3</i>예측 마감</span><span class="arrow">→</span>
+        <span class="st"><i>4</i>익일 정답 판정</span><span class="arrow">→</span>
+        <span class="st"><i>5</i>정확도 누적</span><span class="arrow">→</span>
+        <span class="st"><i>6</i>주간 랭킹 · 구독 리워드</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 02 · 기획 배경 ─────────── -->
+  <section class="slide" data-ch="1" data-title="기획 배경과 의도 — 왜 이 사용자 UX인가?">
+    <div class="head">
+      <div class="eyebrow" data-anim>02 · 컨셉</div>
+      <h1 class="t" data-anim style="--d:.06s">기획 배경과 의도 — <em>왜 이 사용자 UX인가?</em></h1>
+      <p class="lede" data-anim style="--d:.12s">RFP의 세 가지 목표를 <strong>사용자가 매일 앱을 여는 이유</strong>로 번역했습니다. 목표를 기능으로 직역하지 않고, 그 목표가 달성되려면 사용자에게 어떤 동기가 먼저 있어야 하는지부터 설계했습니다.</p>
+    </div>
+
+    <div class="chain-head" data-anim style="--d:.16s">
+      <div class="ch-l">기업 목표 · RFP</div><div></div>
+      <div class="ch-l">사용자 동기 · 우리의 해석</div><div></div>
+      <div class="ch-l acc">기획 방향 · 설계 결정</div>
+    </div>
+
+    <div class="mrows">
+      <div class="mrow" data-anim style="--d:.2s">
+        <div class="mcell goal"><div class="k">재방문율 상승</div><div class="v">이벤트가 끝난 뒤에도 앱을 다시 열 이유가 필요하다</div></div>
+        <div class="arrow">→</div>
+        <div class="mcell"><div class="k">“어제 예측 결과가 궁금해서 다시 연다”</div><div class="v">어제 고른 UP / DOWN이 맞았는지 오늘 바로 확인하고 싶다</div></div>
+        <div class="arrow">→</div>
+        <div class="mcell plan"><div class="k">매일 1회차 예측 · 익일 정답 판정</div><div class="v">하루 한 번 <b>반드시 확인할 결과</b>를 만들고, 주간 정확도로 누적시킨다</div></div>
+      </div>
+
+      <div class="mrow" data-anim style="--d:.26s">
+        <div class="mcell goal"><div class="k">상품 관심 유도</div><div class="v">광고처럼 보이지 않게 제품이 자연스럽게 눈에 들어와야 한다</div></div>
+        <div class="arrow">→</div>
+        <div class="mcell"><div class="k">“지수를 확인하는 동안 빵을 함께 본다”</div><div class="v">KOSPI 같은 낯선 숫자보다 브랜드 언어로 번역된 지표가 편하다</div></div>
+        <div class="arrow">→</div>
+        <div class="mcell plan"><div class="k">3종 지수를 대표 제품 라인업의 언어로</div><div class="v">KOSPI · 환율 · 금 시세를 <b>통밀 · 크루아상 · 골든 브레드 지수</b>로 번역해 매 회차 노출</div></div>
+      </div>
+
+      <div class="mrow" data-anim style="--d:.32s">
+        <div class="mcell goal"><div class="k">구매 전환 연결</div><div class="v">이벤트 참여가 실제 자사몰 매출로 이어져야 한다</div></div>
+        <div class="arrow">→</div>
+        <div class="mcell"><div class="k">“먼저 먹어본 사람이 결국 다시 산다”</div><div class="v">일회성 할인 쿠폰보다 직접 맛본 일주일의 경험이 설득력 있다</div></div>
+        <div class="arrow">→</div>
+        <div class="mcell plan"><div class="k">상위 랭커 7일 프리미엄 구독 체험 리워드</div><div class="v">구매 결정 앞단에 <b>실제 제품 경험</b>을 배치해 관심을 재구매로 연결</div></div>
+      </div>
+    </div>
+
+    <div class="s2-foot">
+      <div class="prem" data-anim style="--d:.38s">
+        <div class="pt">참가비 0원 · 진입 마찰 제거</div>
+        <p class="txt sm">돈이 아니라 시장 감각을 겁니다. 결제 단계를 아예 없애 첫 참여의 문턱을 최대한 낮췄습니다.</p>
+      </div>
+      <div class="prem" data-anim style="--d:.42s">
+        <div class="pt">실력이 아니라 감각 · 동등한 출발</div>
+        <p class="txt sm">금융 지식 없이 UP / DOWN 두 선택지뿐. 누구나 첫 회차부터 동등한 조건으로 참여합니다.</p>
+      </div>
+      <div class="prem" data-anim style="--d:.46s">
+        <div class="pt">매주 리셋 · 언제 합류해도 1위</div>
+        <p class="txt sm">정확도는 한 주가 끝나면 초기화됩니다. 주중에 늦게 합류해도 이번 주 랭킹 1위가 될 수 있습니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 03 · 전·중·후 ─────────── -->
+  <section class="slide" data-ch="2" data-title="서비스 전체 흐름 — 앱 사용 전·중·후">
+    <div class="head">
+      <div class="eyebrow" data-anim>03 · 경험</div>
+      <h1 class="t" data-anim style="--d:.06s">서비스 전체 흐름 — <em>앱 사용 전 · 중 · 후</em></h1>
+    </div>
+
+    <div class="cols3">
+      <div class="pcol c1" data-anim style="--d:.12s">
+        <div class="ph"><span class="n">01</span><span class="tt">앱 사용 전</span><span class="tg">발견과 유입</span></div>
+        <div class="pbody">
+          <div class="pshot" style="background-image:url(&quot;assets/ux-landing.png&quot;)" role="img" aria-label="서비스 랜딩 화면 — 오늘의 브레드마켓 전체 화면"></div>
+          <div class="pmeta">
+            <div class="pblk"><div class="pl">사용자 장면</div><div class="pv">간식 패키지와 친구의 랭킹 카드를 보고 <b>이번 주 챌린지</b>를 발견한다</div></div>
+            <div class="pblk"><div class="pl">핵심 콘텐츠</div><div class="pv">QR 패키지 슬리브 · 초대 카드 · 주간 리워드 안내</div></div>
+            <div class="pblk cta"><div class="pl">행동 단서</div><div class="pv">3종 지수 예측하러 가기<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;opacity:.8;flex:none"><path d="M9 5l7 7-7 7"/></svg></div></div>
+            <div class="pblk"><div class="pl">기대 효과</div><div class="pv">보상이 첫 관심을 만들고, QR이 앱 참여로 연결된다</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcol c2" data-anim style="--d:.18s">
+        <div class="ph"><span class="n">02</span><span class="tt">앱 사용 중</span><span class="tg">매일의 참여</span></div>
+        <div class="pbody">
+          <div class="pshot" style="background-image:url(&quot;assets/ux-home.png&quot;)" role="img" aria-label="오늘의 홈 — 브레드 인덱스 3종과 마감 타이머 전체 화면"></div>
+          <div class="pmeta">
+            <div class="pblk"><div class="pl">사용자 장면</div><div class="pv">시장 흐름을 살펴보고 <b>지수별 상승 · 하락</b>을 선택한다</div></div>
+            <div class="pblk"><div class="pl">핵심 콘텐츠</div><div class="pv">3종 지수 대시보드 · 마감 타이머 · 월~금 진행 도트</div></div>
+            <div class="pblk cta"><div class="pl">행동 단서</div><div class="pv">오늘의 예측 확정<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;opacity:.8;flex:none"><path d="M9 5l7 7-7 7"/></svg></div></div>
+            <div class="pblk"><div class="pl">기대 효과</div><div class="pv">마감 전 선택 · 발표 후 정답 확인이 매일의 재방문을 만든다</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcol c3" data-anim style="--d:.24s">
+        <div class="ph"><span class="n">03</span><span class="tt">앱 사용 후</span><span class="tg">보상과 확산</span></div>
+        <div class="pbody">
+          <div class="pshot" style="background-image:url(&quot;assets/ux-ranking.png&quot;)" role="img" aria-label="주간 랭킹 화면 — TOP 3 리워드 대상 전체 화면"></div>
+          <div class="pmeta">
+            <div class="pblk"><div class="pl">사용자 장면</div><div class="pv">주간 결과를 확인하고, <b>상위 랭커는 구독 리워드</b>를 받는다</div></div>
+            <div class="pblk"><div class="pl">핵심 콘텐츠</div><div class="pv">주간 정확도 랭킹 · 다음 주 7일 프리미엄 브랜드 구독권</div></div>
+            <div class="pblk cta"><div class="pl">행동 단서</div><div class="pv">나의 랭킹 공유 · 다음 주 챌린지<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;opacity:.8;flex:none"><path d="M9 5l7 7-7 7"/></svg></div></div>
+            <div class="pblk"><div class="pl">기대 효과</div><div class="pv">랭킹 인증은 친구의 신규 유입으로, 구독 경험은 재방문으로 이어진다</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="loopbar" data-anim style="--d:.32s">
+      <div class="loopside l">
+        <span class="lk">신규 유입</span>
+        <span class="lv">랭킹 카드 공유 → 친구의 관심 → 챌린지 참여</span>
+      </div>
+      <div class="loopmid"><img src="makji-logo.png" alt="MAKJI 로고"></div>
+      <div class="loopside r">
+        <span class="lv">예측 결과 확인 → 정확도 갱신 → 다음 날 · 다음 주 재도전</span>
+        <span class="lk">재방문</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 04 · 핵심 콘텐츠 ─────────── -->
+  <section class="slide" data-ch="2" data-title="핵심 콘텐츠 — 사용자는 무엇을 즐기는가?">
+    <div class="head">
+      <div class="eyebrow" data-anim>04 · 경험</div>
+      <h1 class="t" data-anim style="--d:.06s">핵심 콘텐츠 — <em>사용자는 무엇을 즐기는가?</em></h1>
+    </div>
+
+    <div class="s4">
+      <div class="s4-left">
+        <div class="phone" data-anim style="--d:.12s" role="img" aria-label="3종 지수 대시보드와 UP/DOWN 예측, 주간 진행 도트가 있는 앱 화면"></div>
+        <div class="card pad shotnote" data-anim style="--d:.18s">
+          <div class="h-lab" style="margin-bottom:8px">이 화면에서 보이는 것</div>
+          <ul class="list">
+            <li>3종 지수와 <b>오늘의 기준값</b></li>
+            <li>지수별 <b>UP / DOWN 선택</b> 버튼</li>
+            <li><b>마감까지 남은 시간</b> 카운트다운</li>
+            <li><b>예측 제출하기</b> 단일 CTA와 마감 안내</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="s4-right">
+        <table class="tbl" data-anim style="--d:.16s">
+          <thead><tr><th style="width:34%">브레드 인덱스 3종</th><th style="width:28%">연동 시장 데이터</th><th>사용자가 하는 일</th></tr></thead>
+          <tbody>
+            <tr><td class="nm"><span class="dot-ac" style="background:var(--idx-market)"></span>통밀 브레드 지수</td><td>KOSPI 지수</td><td>오늘 오를까 내릴까 — UP / DOWN 한 번</td></tr>
+            <tr><td class="nm"><span class="dot-ac" style="background:var(--idx-global)"></span>크루아상 지수</td><td>원/달러 환율</td><td>오늘 오를까 내릴까 — UP / DOWN 한 번</td></tr>
+            <tr><td class="nm"><span class="dot-ac" style="background:var(--idx-gold)"></span>골든 브레드 지수</td><td>금 시세</td><td>오늘 오를까 내릴까 — UP / DOWN 한 번</td></tr>
+          </tbody>
+        </table>
+
+        <div class="steps" data-anim style="--d:.22s">
+          <div class="sp"><div class="n">STEP 1</div><div class="h">지수 확인</div><div class="d">3종 카드와 최근 흐름</div></div>
+          <div class="sp"><div class="n">STEP 2</div><div class="h">UP / DOWN 선택</div><div class="d">지수별 1일 1회</div></div>
+          <div class="sp"><div class="n">STEP 3</div><div class="h">예측 마감</div><div class="d">서버 시각 기준 검증</div></div>
+          <div class="sp"><div class="n">STEP 4</div><div class="h">정답 판정</div><div class="d">확정 기준값 공시 후</div></div>
+          <div class="sp"><div class="n">STEP 5</div><div class="h">정확도 갱신</div><div class="d">주간 랭킹에 반영</div></div>
+        </div>
+
+        <div class="formula" data-anim style="--d:.28s">
+          <div class="fk">정확도</div>
+          <div class="fe"><u>정답 수</u> ÷ <u>유효 예측 수</u></div>
+          <div class="fn">최소 참여 기준 적용 · 무효 회차는 분모에서 제외<br>주 단위로 초기화되어 매주 새로 경쟁합니다</div>
+        </div>
+
+        <div class="card pad" data-anim style="display:flex;align-items:center;gap:18px; --d:.34s">
+          <div>
+            <div class="h-lab" style="margin-bottom:6px">주간 사이클</div>
+            <div class="week">
+              <span class="d on">월</span><span class="d on">화</span><span class="d on">수</span><span class="d">목</span><span class="d">금</span>
+            </div>
+          </div>
+          <p class="txt sm" style="flex:1">월~금 <b>5회차</b>가 한 주를 이룹니다. 마지막 회차 판정 직후 주간 정확도 랭킹이 확정되고, 상위 랭커에게 다음 주 7일 프리미엄 브랜드 구독권이 발급됩니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 05 · 주요 UX ─────────── -->
+  <section class="slide" data-ch="2" data-title="주요 UX — 단계별 행동 유도 구조 및 전략">
+    <div class="head">
+      <div class="eyebrow" data-anim>05 · 경험</div>
+      <h1 class="t" data-anim style="--d:.06s">주요 UX — <em>사용자의 단계별 행동 유도 구조</em> 및 전략</h1>
+      <p class="lede" data-anim style="--d:.12s">각 장면에서 사용자가 <strong>실제로 마주하는 화면과 그때 받는 피드백</strong>을 하나의 단위로 설계했습니다.</p>
+    </div>
+
+    <div class="scenes">
+      <div class="scene" data-anim style="--d:.16s">
+        <div class="sh"><span class="no">1</span><span class="st">랜딩</span></div>
+        <div class="sb">
+          <div class="wf" style="background-image:url(&quot;assets/ux-landing.png&quot;)" role="img" aria-label="서비스 랜딩 화면 — 내일의 브레드 방향을 맞혀보세요"></div>
+            <div class="fb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>이번 주 남은 회차와 참여 인원을 함께 보여 “지금 시작해도 된다”를 확인시킵니다</div>
+        </div>
+      </div>
+
+      <div class="scene" data-anim style="--d:.21s">
+        <div class="sh"><span class="no">2</span><span class="st">예측</span></div>
+        <div class="sb">
+          <div class="wf" style="background-image:url(&quot;assets/ux-predict.png&quot;)" role="img" aria-label="예측 제출 화면 — 3종 지수 UP / DOWN 선택"></div>
+            <div class="fb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>확정 즉시 오늘 도트가 점등되고, 마감 전까지 수정할 수 있음을 알립니다</div>
+        </div>
+      </div>
+
+      <div class="scene" data-anim style="--d:.26s">
+        <div class="sh"><span class="no">3</span><span class="st">결과</span></div>
+        <div class="sb">
+          <div class="wf" style="background-image:url(&quot;assets/ux-result.png&quot;)" role="img" aria-label="결과 확인 화면 — 3개 중 2개 적중 · 이번 주 정확도"></div>
+            <div class="fb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/></svg>정답 · 오답을 색으로 즉시 구분하고, 누적 정확도의 변화를 함께 보여줍니다</div>
+        </div>
+      </div>
+
+      <div class="scene" data-anim style="--d:.31s">
+        <div class="sh"><span class="no">4</span><span class="st">랭킹 · 공유</span></div>
+        <div class="sb">
+          <div class="wf" style="background-image:url(&quot;assets/ux-share.png&quot;)" role="img" aria-label="공유하기 화면 — 나의 브레드 순간 공유 카드"></div>
+            <div class="fb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>공유 카드 미리보기로 “보낼 만한 결과”임을 확인시켜 확산을 유도합니다</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="s5-foot" data-anim style="--d:.38s">
+      <div class="fl">행동 유도<br>3원칙</div>
+      <div class="pr"><i>1</i><div><div class="pt">마감이 보인다</div><div class="pd">남은 시간이 지금 선택할 이유를 만든다</div></div></div>
+      <div class="pr"><i>2</i><div><div class="pt">진행이 쌓인다</div><div class="pd">월~금 도트가 빈칸을 채우고 싶게 만든다</div></div></div>
+      <div class="pr"><i>3</i><div><div class="pt">결과가 돌아온다</div><div class="pd">익일 판정이 다음 방문의 약속이 된다</div></div></div>
+    </div>
+  </section>
+
+  <!-- ─────────── 06 · 외부데이터 ─────────── -->
+  <section class="slide" data-ch="3" data-title="외부데이터 — 어떤 정보를 어떻게 사용하는가?">
+    <div class="head">
+      <div class="eyebrow" data-anim>06 · 구현</div>
+      <h1 class="t" data-anim style="--d:.06s">외부데이터 — <em>어떤 정보를 가져와서 어떻게 사용하는가?</em></h1>
+    </div>
+
+    <div class="s6">
+      <div class="s6-left">
+        <div class="tblwrap" data-anim style="--d:.12s">
+          <table class="tbl big">
+            <thead><tr>
+              <th style="width:26%">데이터 소스</th><th style="width:26%">브랜드 지수</th>
+              <th style="width:24%">조회 주기</th><th>정답 판정 기준</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="pill-src"><i style="background:rgba(27,95,217,.12);color:var(--idx-market)">지수</i>KOSPI 지수</span></td>
+                <td class="nm">통밀 브레드 지수</td>
+                <td>영업일 1일 1회<br><span class="mini">확정 기준값 공시 후 조회</span></td>
+                <td>직전 확정값 대비 <b>상승 / 하락</b></td>
+              </tr>
+              <tr>
+                <td><span class="pill-src"><i style="background:rgba(46,158,91,.12);color:var(--idx-global)">환율</i>원/달러 환율</span></td>
+                <td class="nm">크루아상 지수</td>
+                <td>영업일 1일 1회<br><span class="mini">확정 기준값 공시 후 조회</span></td>
+                <td>직전 확정값 대비 <b>상승 / 하락</b></td>
+              </tr>
+              <tr>
+                <td><span class="pill-src"><i style="background:rgba(196,132,31,.14);color:var(--idx-gold)">금</i>금 시세</span></td>
+                <td class="nm">골든 브레드 지수</td>
+                <td>영업일 1일 1회<br><span class="mini">확정 기준값 공시 후 조회</span></td>
+                <td>직전 확정값 대비 <b>상승 / 하락</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="warn" data-anim style="--d:.26s">
+          <div class="wt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6A2 2 0 0022 18L13.7 3.9a2 2 0 00-3.4 0z"/></svg>예외 상황 처리</div>
+          <div class="wl">
+            <div><b>휴장 · 미공시 회차</b>새 데이터로 판정하지 않고 무효 회차로 처리합니다</div>
+            <div><b>정확도 영향</b>무효 회차는 유효 예측 수에서 제외되어 불이익이 없습니다</div>
+            <div><b>기준 시각</b>예측 마감과 판정 모두 서버 시각을 단일 기준으로 씁니다</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dchain">
+        <div class="dnode" data-anim style="--d:.16s">
+          <div class="dn">DATA · 가져오기</div>
+          <div class="dt">시장 기준값 수집</div>
+          <div class="dd">스케줄러가 영업일 1일 1회, 확정 기준값이 공시된 뒤 3종 소스를 조회해 원본값을 저장합니다.</div>
+        </div>
+        <div class="dsep">↓</div>
+        <div class="dnode" data-anim style="--d:.2s">
+          <div class="dn">PROCESS · 가공 · 판정</div>
+          <div class="dt">지수 산출 · 정답 판정</div>
+          <div class="dd">원본값을 3종 브레드 지수로 변환하고, 직전 확정값과 비교해 회차별 정답(UP / DOWN)을 확정합니다.</div>
+        </div>
+        <div class="dsep">↓</div>
+        <div class="dnode" data-anim style="--d:.24s">
+          <div class="dn">EXPERIENCE · 사용자 경험</div>
+          <div class="dt">경험으로 환원</div>
+          <div class="dd">대시보드 지수 카드, 정답 피드백, 정확도 갱신, 주간 랭킹과 구독권 발급까지 하나의 값으로 이어집니다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline" data-anim style="--d:.32s">
+      <div class="tl">회차 운영 타임라인<span>영업일 기준 · 시각은 협의 후 확정</span></div>
+      <div class="track">
+        <div class="tstep"><i></i><div class="tw">회차 오픈</div><div class="td">3종 지수와 최근 흐름 공개</div></div>
+        <div class="tstep"><i></i><div class="tw">예측 마감</div><div class="td">서버 시각 기준으로 제출 차단</div></div>
+        <div class="tstep f"><i></i><div class="tw">기준값 공시</div><div class="td">확정값 공시 후 외부 데이터 조회</div></div>
+        <div class="tstep"><i></i><div class="tw">정답 판정</div><div class="td">지수 산출 → 정답 확정 → 정확도 갱신</div></div>
+        <div class="tstep"><i></i><div class="tw">결과 공개</div><div class="td">다음 회차 오픈과 함께 결과 노출</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 07 · 구현 구조 ─────────── -->
+  <section class="slide" data-ch="3" data-title="구현 구조 — Next.js와 Supabase 시스템 구조 개요">
+    <div class="head">
+      <div class="eyebrow" data-anim>07 · 구현</div>
+      <h1 class="t" data-anim style="--d:.06s">구현 구조 — <em>Next.js와 Supabase</em>, 외부 정보 활용의 시스템 구조 개요</h1>
+    </div>
+
+    <div class="archwrap">
+      <div class="archimg" data-anim style="--d:.12s">
+        <img src="app-architecture-flow.png" alt="브레드 인덱스 예측 서비스 애플리케이션 아키텍처 — 사용자 화면, Next.js 풀스택 웹앱(FE·BE), 외부 시장 데이터, Supabase PostgreSQL, 스케줄러의 데이터 흐름도">
+      </div>
+      <div class="flow4">
+        <div class="fc" data-anim style="--d:.2s"><span class="fn">1</span><div><div class="ft">서버 신뢰 경계</div><div class="fd">판정 · 랭킹 · 구독권은 서버에서만 갱신하고, 예측 기록은 본인만 조회합니다</div></div></div>
+        <div class="fc" data-anim style="--d:.24s"><span class="fn">2</span><div><div class="ft">스케줄러 안정성</div><div class="fd">수집 · 판정 실패 시 재시도하고, 같은 회차의 중복 판정을 막습니다</div></div></div>
+        <div class="fc" data-anim style="--d:.28s"><span class="fn">3</span><div><div class="ft">데이터 정합성</div><div class="fd">휴장 · 미공시 회차를 무효로 표시해 정확도 왜곡을 차단합니다</div></div></div>
+        <div class="fc" data-anim style="--d:.32s"><span class="fn">4</span><div><div class="ft">확장 여지</div><div class="fd">지수 라인업과 리워드 정책을 데이터로 관리해 코드 수정 없이 교체합니다</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 08 · 기대효과 ─────────── -->
+  <section class="slide" data-ch="4" data-title="기대효과 — 사용자 활동이 브랜드 성과로">
+    <div class="head">
+      <div class="eyebrow" data-anim>08 · 효과 · 검증</div>
+      <h1 class="t" data-anim style="--d:.06s">기대효과 — <em>사용자 활동이 브랜드 성과로</em> 이어지는 구조</h1>
+    </div>
+
+    <div class="efwrap" data-anim style="--d:.12s">
+      <table class="eff">
+        <thead><tr>
+          <th style="width:23%">설계 요소</th><th style="width:22%">기대 행동</th><th style="width:23%">기업 효과</th><th>확인 지표</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="a">매일 1회차 · 익일 정답 판정</td><td>어제 결과를 확인하러 다시 연다</td><td class="c">재방문</td><td class="m">D1 · D7 재방문율 / 주간 5회차 참여 완주율</td></tr>
+          <tr><td class="a">월~금 진행 도트 · 주간 리셋</td><td>빈 회차를 채우고 다음 주에 다시 도전한다</td><td class="c">체류 · 지속 참여</td><td class="m">1인당 주간 예측 회차 수 / 주간 리텐션</td></tr>
+          <tr><td class="a">3종 지수 = 브랜드 라인업 언어</td><td>지수를 보다가 해당 제품을 눌러본다</td><td class="c">상품 관심</td><td class="m">지수 카드 → 상품 상세 이동률</td></tr>
+          <tr><td class="a">주간 랭킹 카드 공유</td><td>결과를 인증하고 친구를 불러온다</td><td class="c">신규 유입</td><td class="m">공유 발생 수 / 공유 경유 신규 가입률</td></tr>
+          <tr><td class="a">상위 랭커 7일 프리미엄 구독권</td><td>실제 제품을 일주일간 경험한다</td><td class="c">구매 전환</td><td class="m">리워드 수령 후 자사몰 방문 · 구매율</td></tr>
+          <tr><td class="a">패키지 QR · 초대 카드</td><td>오프라인 구매가 앱 참여로 이어진다</td><td class="c">오프라인 → 온라인 연결</td><td class="m">QR 스캔 수 / 랜딩 → 첫 예측 전환율</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="s8-foot">
+      <div class="nsm" data-anim style="--d:.3s">
+        <div class="nl">핵심 지표</div>
+        <div class="nv"><u>주간 유효 예측 참여자 수</u><br>— 재방문 · 관심 · 전환이 모두 이 수치를 통과합니다</div>
+      </div>
+      <div class="fbox next" data-anim style="--d:.34s">
+        <div class="fh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>측정 전제</div>
+        <p class="txt sm">모든 지표는 랜딩 유입 · 예측 제출 · 결과 확인 · 공유 클릭 이벤트를 앱 안에서 직접 적재해 산출합니다. 별도 외부 추적 도구 없이 1주 단위로 확인 가능한 범위로 설계했습니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 09 · 범위 ─────────── -->
+  <section class="slide" data-ch="4" data-title="본 프로젝트가 구현하고 검증할 범위">
+    <div class="head">
+      <div class="eyebrow" data-anim>09 · 효과 · 검증</div>
+      <h1 class="t" data-anim style="--d:.06s">본 프로젝트가 <em>구현하고 검증할 범위</em></h1>
+      <p class="lede" data-anim style="--d:.12s">이번 프로젝트에서 <strong>실제로 동작시킬 것</strong>과 <strong>설계로 제시할 것</strong>을 분명히 나눴습니다.</p>
+    </div>
+
+    <div class="scope">
+      <div class="sc a" data-anim style="--d:.16s">
+        <div class="sch">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg></span>
+          <span class="t">MVP 구현</span><span class="g">동작하는 서비스</span>
+        </div>
+        <div class="scb">
+          <ul class="list">
+            <li>이벤트 <b>랜딩페이지</b> — QR · 광고 유입 수용</li>
+            <li>회원 가입 · 로그인, 본인 기록 접근 제어</li>
+            <li><b>3종 브레드 지수 대시보드</b> 및 최근 흐름</li>
+            <li>일일 UP / DOWN <b>예측 제출 · 마감 검증</b></li>
+            <li>시장 기준값 <b>수집 스케줄러</b> (영업일 1일 1회)</li>
+            <li>일일 <b>정답 판정 · 정확도 갱신</b></li>
+            <li><b>주간 랭킹 집계</b> 및 구독권 발급 기록</li>
+            <li>랭킹 카드 <b>공유</b> (이미지 · 링크)</li>
+          </ul>
+          <p class="mini">한 주 <b>5회차가 실제로 돌아가는 상태</b>까지를 이번 구현 범위로 잡았습니다.</p>
+        </div>
+      </div>
+
+      <div class="sc b" data-anim style="--d:.22s">
+        <div class="sch">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12h18M12 3v18"/></svg></span>
+          <span class="t">확장 설계</span><span class="g">기획 · 설계로 제시</span>
+        </div>
+        <div class="scb">
+          <ul class="list">
+            <li><b>실물 리워드</b> 배송 · 수령 운영 플로우</li>
+            <li><b>신제품 패키지</b> QR 슬리브 · 초대 카드 제작안</li>
+            <li><b>자사몰 계정 연동</b> 및 구독권 쿠폰 발급</li>
+            <li>시즌 · 테마 챌린지 (지수 라인업 교체)</li>
+            <li>마감 전 · 판정 후 <b>알림 리마인드</b></li>
+            <li>정확도 기반 등급 · 시즌 누적 랭킹</li>
+          </ul>
+          <p class="mini">구현 난이도가 아니라 <b>운영 · 브랜드 의사결정</b>이 먼저 필요한 영역이라 설계까지만 제시합니다.</p>
+        </div>
+      </div>
+
+      <div class="sc c" data-anim style="--d:.28s">
+        <div class="sch">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
+          <span class="t">검증 계획</span><span class="g">다음 단계</span>
+        </div>
+        <div class="scb">
+          <ul class="list">
+            <li>내부 <b>파일럿 1주(5회차)</b> 운영으로 참여율과 이탈 지점 확인</li>
+            <li><b>랜딩 → 가입 → 첫 예측</b> 전환율 측정</li>
+            <li>랭킹 카드 공유 클릭 → <b>신규 가입 경로</b> 추적</li>
+            <li>휴장 · 미공시 회차의 <b>무효 처리</b> 실제 동작 확인</li>
+            <li>마감 · 판정 시각의 <b>서버 기준 일관성</b> 점검</li>
+            <li>지수 카드 → 상품 상세 <b>이동 지표 적재</b> 확인</li>
+          </ul>
+          <p class="mini">파일럿 1주 운영 결과를 <b>다음 발표에서 지표로</b> 보고드립니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="s9-foot">
+      <div class="fbox ok" data-anim style="--d:.34s">
+        <div class="fh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>현재까지 확인한 사항</div>
+        <ul class="list">
+          <li>3종 지수 소스와 <b>영업일 1일 1회 조회</b> 주기의 실현 가능성</li>
+          <li>예측 마감과 판정 시점을 <b>서버 단일 기준</b>으로 처리하는 방식</li>
+          <li>휴장 · 미공시 회차를 <b>무효 처리</b>하는 규칙의 정합성</li>
+        </ul>
+      </div>
+      <div class="fbox next" data-anim style="--d:.38s">
+        <div class="fh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>기업 협의가 필요한 사항</div>
+        <ul class="list">
+          <li>3종 지수에 매칭할 <b>대표 제품 라인업</b>과 브랜드 자료</li>
+          <li>구독 리워드의 <b>수량 · 실물/디지털 형태 · 배송 범위</b></li>
+          <li>자사몰 연동 가능 범위 — 다음 장에서 함께 확정합니다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── 10 · 확정 사항 ─────────── -->
+  <section class="slide" data-ch="5" data-title="발주 기업과 함께 확정할 사항 및 다음 단계">
+    <div class="head">
+      <div class="eyebrow" data-anim>10 · 의사결정</div>
+      <h1 class="t" data-anim style="--d:.06s">발주 기업과 <em>함께 확정할 사항</em> 및 다음 단계</h1>
+      <p class="lede" data-anim style="--d:.12s">각 항목마다 <strong>저희 제안</strong>을 먼저 놓았습니다. 그대로 진행할지, 조정할지만 판단해 주시면 다음 주 작업에 바로 반영합니다.</p>
+    </div>
+
+    <div class="dec">
+      <div class="dc" data-anim style="--d:.16s">
+        <div class="dch"><div class="qn">Q1</div><div class="qt">콘텐츠 방향과<br>톤앤매너</div></div>
+        <div class="dcb">
+          <div class="prop"><div class="pl">팀 제안</div><div class="pv">“예측은 재미, 브랜드는 보상” — 투자 · 베팅 뉘앙스는 배제하고 일상의 감각 놀이로 표현</div></div>
+          <div class="need"><div class="nl">필요한 것</div><div class="nv">브랜드 가이드 · 금지 표현 리스트</div></div>
+          <div class="defer"><div class="nl">미확정 시</div><div class="nv">기본 톤으로 초안을 만들고 확정 후 문구만 교체합니다</div></div>
+          <div class="impact"><div class="nl">바뀌는 것</div><div class="nv">랜딩과 앱 전반의 문구 · 비주얼 톤</div></div>
+        </div>
+      </div>
+
+      <div class="dc" data-anim style="--d:.2s">
+        <div class="dch"><div class="qn">Q2</div><div class="qt">제공 가능한<br>상품 · 브랜드 자료</div></div>
+        <div class="dcb">
+          <div class="prop"><div class="pl">팀 제안</div><div class="pv">3종 지수에 각각 매칭할 대표 라인업 3종을 선정해 지수 카드와 함께 노출</div></div>
+          <div class="need"><div class="nl">필요한 것</div><div class="nv">제품 이미지 · 설명 · 가격 · 사용 가능 범위</div></div>
+          <div class="defer"><div class="nl">미확정 시</div><div class="nv">임시 상품 데이터로 화면을 먼저 구성합니다</div></div>
+          <div class="impact"><div class="nl">바뀌는 것</div><div class="nv">지수 카드에 붙는 제품과 상세 이동 경로</div></div>
+        </div>
+      </div>
+
+      <div class="dc" data-anim style="--d:.24s">
+        <div class="dch"><div class="qn">Q3</div><div class="qt">지수 산식과<br>판정 기준</div></div>
+        <div class="dcb">
+          <div class="prop"><div class="pl">팀 제안</div><div class="pv">직전 확정값 대비 등락으로 판정하고, 동률 · 미공시는 무효 회차로 처리</div></div>
+          <div class="need"><div class="nl">필요한 것</div><div class="nv">브랜드 관점에서의 산식 승인 · 지수 명칭 확정</div></div>
+          <div class="defer"><div class="nl">미확정 시</div><div class="nv">제안 산식으로 구현하고 기준만 파라미터로 교체합니다</div></div>
+          <div class="impact"><div class="nl">바뀌는 것</div><div class="nv">판정 로직과 정확도 산출 규칙</div></div>
+        </div>
+      </div>
+
+      <div class="dc" data-anim style="--d:.28s">
+        <div class="dch"><div class="qn">Q4</div><div class="qt">리워드 구성과<br>운영 조건</div></div>
+        <div class="dcb">
+          <div class="prop"><div class="pl">팀 제안</div><div class="pv">주간 정확도 상위 N명에게 다음 주 7일 프리미엄 브랜드 구독권 발급</div></div>
+          <div class="need"><div class="nl">필요한 것</div><div class="nv">상위 인원 수 · 원가 상한 · 실물/디지털 · 배송 범위</div></div>
+          <div class="defer"><div class="nl">미확정 시</div><div class="nv">상위 3명 가정으로 발급 로직을 먼저 구현합니다</div></div>
+          <div class="impact"><div class="nl">바뀌는 것</div><div class="nv">랭킹 상위 인원 수와 발급 · 배송 플로우</div></div>
+        </div>
+      </div>
+
+      <div class="dc" data-anim style="--d:.32s">
+        <div class="dch"><div class="qn">Q5</div><div class="qt">자사몰<br>연동 범위</div></div>
+        <div class="dcb">
+          <div class="prop"><div class="pl">팀 제안</div><div class="pv">MVP는 상품 링크 아웃까지, 계정 · 쿠폰 연동은 2차 범위로 분리</div></div>
+          <div class="need"><div class="nl">필요한 것</div><div class="nv">연동 가능 여부 · API 제공 범위 · 담당 창구</div></div>
+          <div class="defer"><div class="nl">미확정 시</div><div class="nv">링크 아웃 기준으로 구현하고 연동은 이후 추가합니다</div></div>
+          <div class="impact"><div class="nl">바뀌는 것</div><div class="nv">구매 전환을 어디까지 측정할 수 있는지</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline" data-anim style="--d:.38s">
+      <div class="tl">다음 단계<span>제안 일정 · 협의 후 조정</span></div>
+      <div class="track">
+        <div class="tstep f"><i></i><div class="tw">오늘</div><div class="td">Q1~Q5 판단 요청</div></div>
+        <div class="tstep"><i></i><div class="tw">확정 직후</div><div class="td">화면 설계 · DB 스키마 확정</div></div>
+        <div class="tstep"><i></i><div class="tw">구현</div><div class="td">예측 · 판정 · 랭킹 핵심 기능</div></div>
+        <div class="tstep"><i></i><div class="tw">연동 · 안정화</div><div class="td">시장 데이터 · 스케줄러 검증</div></div>
+        <div class="tstep"><i></i><div class="tw">파일럿</div><div class="td">1주 5회차 운영 · 지표 확인</div></div>
+        <div class="tstep"><i></i><div class="tw">최종 시연</div><div class="td">결과 보고 및 확장 논의</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────── CLOSING ─────────── -->
+  <section class="slide full closing" data-ch="5" data-title="MAKJI 브레드의 새 도약을 열어갑니다">
+    <div class="cl-inner">
+      <div class="cl-plate" data-anim style="--d:.06s"><img src="makji-logo.png" alt="MAKJI — Wellness Bakery &amp; Dessert 로고"></div>
+      <h2 data-anim style="--d:.16s">MAKJI 브레드의 <em>새 도약</em>을 열어갑니다</h2>
+      <div class="crule" data-anim style="--d:.26s"></div>
+    </div>
+  </section>
+
+  </main>
+
+  <div class="ovl" id="ovOverview" role="dialog" aria-label="슬라이드 개요">
+    <div class="oclose"><span class="kbd">Esc</span> 닫기</div>
+    <h3>전체 개요</h3>
+    <div class="osub">5단계로 연결하는 10장의 이야기 — 카드를 클릭하면 해당 장으로 이동합니다</div>
+    <div class="ogrid" id="ogrid"></div>
+  </div>
+
+  <div class="ovl" id="ovHelp" role="dialog" aria-label="키보드 단축키">
+    <div class="oclose"><span class="kbd">Esc</span> 닫기</div>
+    <h3>키보드 단축키</h3>
+    <div class="osub">발표 중 사용할 수 있는 조작키입니다</div>
+    <div class="hgrid">
+      <div class="hrow"><span class="hk"><span class="kbd">→</span><span class="kbd">↓</span><span class="kbd">Space</span></span><span class="hd">다음 장</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">←</span><span class="kbd">↑</span></span><span class="hd">이전 장</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">Home</span></span><span class="hd">첫 장으로</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">End</span></span><span class="hd">마지막 장으로</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">O</span></span><span class="hd">전체 개요 열기 · 닫기</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">F</span></span><span class="hd">전체 화면 전환</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">1</span>~<span class="kbd">9</span></span><span class="hd">해당 번호 장으로 이동</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">?</span></span><span class="hd">이 도움말 열기 · 닫기</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">Esc</span></span><span class="hd">열린 창 닫기</span></div>
+      <div class="hrow"><span class="hk"><span class="kbd">⌘</span><span class="kbd">P</span></span><span class="hd">PDF로 내보내기 (배경 그래픽 켜기)</span></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="sr" aria-live="polite" id="live"></div>
+
+<script>
+(function(){
+  "use strict";
+  var stage=document.getElementById('stage');
+  var vp=document.getElementById('viewport');
+  var slides=Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var railChs=Array.prototype.slice.call(document.querySelectorAll('#rail .ch'));
+  var bar=document.getElementById('bar');
+  var curEl=document.getElementById('cur');
+  var totEl=document.getElementById('tot');
+  var live=document.getElementById('live');
+  var ovOverview=document.getElementById('ovOverview');
+  var ovHelp=document.getElementById('ovHelp');
+  var W=1440, H=810, i=0, N=slides.length;
+
+  totEl.textContent=String(N).padStart(2,'0');
+
+  function fit(){
+    var sw=window.innerWidth/W, sh=window.innerHeight/H;
+    var s=Math.min(sw,sh);
+    /* 가로가 부족해 가로폭에 맞춰 줄어들 때는 무대를 화면 왼쪽에 붙인다 */
+    var narrow = sw < sh;
+    vp.style.justifyContent = narrow ? 'flex-start' : 'center';
+    stage.style.transformOrigin = narrow ? 'left center' : 'center center';
+    stage.style.transform='scale('+s+')';
+  }
+  window.addEventListener('resize',fit,{passive:true});
+  fit();
+
+  var chName={0:'표지',1:'컨셉',2:'경험',3:'구현',4:'효과 · 검증',5:'의사결정'};
+  var ogrid=document.getElementById('ogrid');
+  slides.forEach(function(sl,n){
+    var c=document.createElement('button');
+    c.className='oc'; c.type='button';
+    var ch=sl.getAttribute('data-ch')||'0';
+    c.innerHTML='<div class="on-num">'+String(n+1).padStart(2,'0')+'</div>'+
+                '<div class="on-t">'+(sl.getAttribute('data-title')||'')+'</div>'+
+                '<div class="on-c">'+(chName[ch]||'')+'</div>';
+    c.addEventListener('click',function(){ closeOverlays(); go(n); });
+    ogrid.appendChild(c);
+  });
+  var ocards=Array.prototype.slice.call(ogrid.children);
+
+  function go(n){
+    n=Math.max(0,Math.min(N-1,n));
+    slides[i].classList.remove('active');
+    i=n;
+    var sl=slides[i];
+    sl.classList.remove('active');
+    void sl.offsetWidth;              /* 등장 애니메이션 재시작 */
+    sl.classList.add('active');
+
+    var ch=sl.getAttribute('data-ch')||'0';
+    stage.setAttribute('data-chrome', sl.classList.contains('full')?'off':'on');
+    railChs.forEach(function(r){
+      var rc=r.getAttribute('data-ch');
+      r.classList.toggle('on', rc===ch);
+      r.classList.toggle('done', Number(rc)<Number(ch));
+    });
+    ocards.forEach(function(c,k){ c.classList.toggle('on', k===i); });
+
+    curEl.textContent=String(i+1).padStart(2,'0');
+    bar.style.width=(i/(N-1)*100).toFixed(3)+'%';
+    live.textContent=(i+1)+' / '+N+' — '+(sl.getAttribute('data-title')||'');
+    if(location.hash!=='#'+(i+1)) history.replaceState(null,'','#'+(i+1));
+  }
+  function next(){ go(i+1); }
+  function prev(){ go(i-1); }
+
+  function anyOpen(){ return ovOverview.classList.contains('open')||ovHelp.classList.contains('open'); }
+  function closeOverlays(){ ovOverview.classList.remove('open'); ovHelp.classList.remove('open'); }
+  function toggle(el){ var was=el.classList.contains('open'); closeOverlays(); if(!was) el.classList.add('open'); }
+
+  document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k==='Escape'){ if(anyOpen()){ e.preventDefault(); closeOverlays(); } return; }
+    if(k==='?'||(k==='/'&&e.shiftKey)){ e.preventDefault(); toggle(ovHelp); return; }
+    if(k==='o'||k==='O'||k==='ㅐ'){ e.preventDefault(); toggle(ovOverview); return; }
+    if(k==='f'||k==='F'||k==='ㄹ'){
+      e.preventDefault();
+      if(document.fullscreenElement) document.exitFullscreen();
+      else if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+      return;
+    }
+    if(anyOpen()) return;
+    switch(k){
+      case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter': case 'n':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'Backspace': case 'p':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(N-1); break;
+      default: if(/^[1-9]$/.test(k)){ e.preventDefault(); go(Number(k)-1); }
+    }
+  });
+
+  document.getElementById('znext').addEventListener('click',next);
+  document.getElementById('zprev').addEventListener('click',prev);
+
+  var tx=0,ty=0;
+  vp.addEventListener('touchstart',function(e){ tx=e.changedTouches[0].clientX; ty=e.changedTouches[0].clientY; },{passive:true});
+  vp.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)){ dx<0?next():prev(); }
+  },{passive:true});
+
+  var start=parseInt((location.hash||'').replace('#',''),10);
+  go(isNaN(start)?0:start-1);
+  window.addEventListener('hashchange',function(){
+    var n=parseInt((location.hash||'').replace('#',''),10);
+    if(!isNaN(n)) go(n-1);
+  });
+})();
+</script>
+</body>
+</html>
