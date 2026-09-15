@@ -55,7 +55,7 @@ open index.html
 | `assets/diagrams/app-architecture-flow.png` | 애플리케이션 아키텍처 도식 (7장에 사용) |
 | `docs/DESIGN.md` | 디자인 정책 SSOT — 컬러 토큰, 타이포, 컴포넌트, 앱 목업 규칙 |
 | `docs/presentation-deck-structure.md` | 발표 스토리텔링 구조 (10장 목차 원안) |
-| `docs/guides/MAKJI_Cafe24_MVP_교육가이드.html` | 카페24 자사몰 연동 따라하기 가이드 (57쪽, 단일 파일) — 예제 몰 wildmental · 상품 16 기준, 실습 코드 전체 포함 |
+| `docs/guides/MAKJI_Cafe24_MVP_교육가이드.html` | 카페24 자사몰 연동 AI-Native 실습 가이드 (63쪽, 단일 파일) — 예제 몰 wildmental · 상품 16 기준. 코드는 🤖 에이전트 프롬프트 24개와 재료 문서로 만들고, 계정·대시보드·비밀값만 사람이 직접. 초반에 진행 방법 자가 점검(HUMAN_TODO만으로 되는 조건)과 비밀값 관리 요약 포함 |
 | `docs/cafe24-lab-work-plan.md` | 프로토타입 → AI-Native 가이드 작업 계획 |
 | `docs/goal01-prototyping.md` · `docs/goal02-guide-doc-renewal.md` | 두 단계 작업의 /goal 프롬프트 |
 | `docs/example-mall-info.md` | 예제 쇼핑몰 wildmental · 상품 16 식별값 |
