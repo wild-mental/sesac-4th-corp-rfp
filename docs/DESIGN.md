@@ -1,8 +1,8 @@
 # MAKJI 브레드마켓 — 프레젠테이션 디자인 정책
 
-> **단일 진실 원천(SSOT).** 기준 레퍼런스는 `MAKJI_UX소개_슬라이드이미지/` 의 4장(서비스 경험 01~03, 관리자 경험 04).
+> **단일 진실 원천(SSOT).** 기준 레퍼런스는 `references/ux-intro-slides/` 의 4장(서비스 경험 01~03, 관리자 경험 04).
 > **지수 명칭도 이 레퍼런스를 따른다** — 통밀 브레드 지수 / 크루아상 지수 / 골든 브레드 지수. 구 명칭(마켓·글로벌·골드 브랜드 지수)은 폐기.
-> 이 문서와 어긋나는 스타일이 발견되면 이 문서가 우선한다. 적용 대상: `index.html`.
+> 이 문서와 어긋나는 스타일이 발견되면 이 문서가 우선한다. 적용 대상: 저장소 루트의 `index.html`.
 
 ---
 
@@ -160,9 +160,9 @@ CSS 변수는 `index.html`의 `:root`에 정의한다. **하드코딩 금지 —
 ### 파이프라인
 
 ```bash
-sips -c <h+12> <w+12> --cropOffset <y-6> <x-6> "<원본>" --out assets/ux-x.png   # 진짜 경계 + 6px 여백
-sips --resampleHeight 690 assets/ux-x.png --out assets/ux-x.png                 # 폰 높이 통일
-sips -p 690 380 --padColor FFFFFF assets/ux-x.png --out assets/ux-x.png         # 공통 캔버스 중앙 패딩
+sips -c <h+12> <w+12> --cropOffset <y-6> <x-6> "<원본>" --out assets/mockups/ux-x.png       # 진짜 경계 + 6px 여백
+sips --resampleHeight 690 assets/mockups/ux-x.png --out assets/mockups/ux-x.png           # 폰 높이 통일
+sips -p 690 380 --padColor FFFFFF assets/mockups/ux-x.png --out assets/mockups/ux-x.png   # 공통 캔버스 중앙 패딩
 ```
 
 모든 파일이 **380×690** 단일 캔버스라 어느 박스에 넣어도 크기·위치가 자동으로 일치한다.
@@ -178,7 +178,7 @@ sips -p 690 380 --padColor FFFFFF assets/ux-x.png --out assets/ux-x.png         
 한 변만 지정하고 나머지는 `aspect-ratio`에 맡긴다. 박스 크기를 키우고 싶으면
 주변 패딩·간격을 줄여 높이를 확보한다 — 비율은 절대 건드리지 않는다.
 
-| 파일 | 원본 화면 | 사용처 | 표시 크기 |
+| 파일 (`assets/mockups/`) | 원본 화면 (`references/ux-intro-slides/`) | 사용처 | 표시 크기 |
 |------|-----------|--------|-----------|
 | `ux-landing.png` | 01 서비스 랜딩 | 4장 col1 · 6장 장면1 | 205×372 / 182×330 |
 | `ux-home.png` | 02 오늘의 홈 | 4장 col2 | 205×372 |
@@ -197,7 +197,7 @@ sips -p 690 380 --padColor FFFFFF assets/ux-x.png --out assets/ux-x.png         
 
 ## 6. 로고 사용 규칙
 
-`makji-logo.png` — 블루 스크립트, 배경 투명.
+`assets/brand/makji-logo.png` — 블루 스크립트, 배경 투명.
 
 | 위치 | 크기 | 규칙 |
 |------|------|------|
@@ -237,10 +237,11 @@ sips -p 690 380 --padColor FFFFFF assets/ux-x.png --out assets/ux-x.png         
 - [ ] 강조가 **3단 표**의 층위에 맞는가 (헤딩=블루 / 본문=잉크 / 특별=앰버 / 블루 면 위=on-brand)
 - [ ] 1440×810 안에서 잘리거나 넘치는 요소가 없는가
 - [ ] 한글이 어절 중간에서 끊기지 않는가
-- [ ] 앱 화면을 배경 크롭이 아니라 `assets/ux-*.png` 정규화 파일로 넣었는가
+- [ ] 앱 화면을 배경 크롭이 아니라 `assets/mockups/ux-*.png` 정규화 파일로 넣었는가
 - [ ] 헤드리스 렌더링으로 **실제 화면을 눈으로** 확인했는가
 
 ```bash
+# 저장소 루트에서 실행 (shots/ 는 .gitignore 대상)
 CH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 for n in $(seq 1 12); do
   "$CH" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \

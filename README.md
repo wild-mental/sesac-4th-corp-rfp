@@ -28,15 +28,35 @@ open index.html
 
 ## 구성
 
+```
+.
+├── index.html          발표 덱 본체 — GitHub Pages 진입점이라 루트에 둔다
+├── assets/             덱이 직접 불러오는 리소스
+│   ├── brand/          로고
+│   ├── mockups/        정규화된 앱 화면 목업
+│   ├── images/         기타 이미지 조각
+│   └── diagrams/       덱에 들어가는 도식
+├── docs/               문서
+│   └── guides/         별도 배포용 단독 HTML 가이드
+└── references/         원본·기획 레퍼런스 (덱에서 직접 쓰지 않음)
+    ├── ux-intro-slides/
+    ├── mobile-screens/
+    └── planning/
+```
+
 | 경로 | 내용 |
 |------|------|
 | `index.html` | 발표 덱 본체 (12장, 단일 파일) |
-| `DESIGN.md` | 디자인 정책 SSOT — 컬러 토큰, 타이포, 컴포넌트, 앱 목업 규칙 |
-| `presentation-deck-structure.md` | 발표 스토리텔링 구조 (10장 목차 원안) |
-| `assets/` | 정규화된 앱 화면 목업 7종 (356×700 캔버스) |
-| `MAKJI_UX소개_슬라이드이미지/` | UX 소개 원본 (테마·목업 기준 레퍼런스) |
-| `MAKJI_모바일_페이지_15장/` | 모바일 화면 15종 원본 |
-| `app-architecture-flow.png` | 애플리케이션 아키텍처 도식 (7장에 사용) |
+| `assets/brand/makji-logo.png` | MAKJI 로고 (표지·3장·클로징) |
+| `assets/mockups/ux-*.png` | 정규화된 앱 화면 목업 6종 (380×690 캔버스) |
+| `assets/images/reward-box.png` | 리워드 박스 이미지 |
+| `assets/diagrams/app-architecture-flow.png` | 애플리케이션 아키텍처 도식 (7장에 사용) |
+| `docs/DESIGN.md` | 디자인 정책 SSOT — 컬러 토큰, 타이포, 컴포넌트, 앱 목업 규칙 |
+| `docs/presentation-deck-structure.md` | 발표 스토리텔링 구조 (10장 목차 원안) |
+| `docs/guides/MAKJI_Cafe24_MVP_교육가이드.html` | 카페24 자사몰 연동 따라하기 가이드 (57쪽, 단일 파일) — 예제 몰 wildmental · 상품 16 기준, 실습 코드 전체 포함 |
+| `references/ux-intro-slides/` | UX 소개 슬라이드 원본 4장 (테마·목업 기준 레퍼런스) |
+| `references/mobile-screens/` | 모바일 화면 15종 원본 (사용자 U01~U10 · 관리자 A01~A05) |
+| `references/planning/` | 확장형 CJM, 5단계 스토리텔링 구조도 |
 
 ## 덱 흐름
 
@@ -50,9 +70,11 @@ open index.html
 
 ## 수정 시
 
-`DESIGN.md`의 체크리스트를 따르고, 반드시 실제 렌더링을 눈으로 확인할 것.
+`docs/DESIGN.md`의 체크리스트를 따르고, 반드시 실제 렌더링을 눈으로 확인할 것.
+새 리소스는 덱에서 쓰면 `assets/` 아래 용도별 폴더에, 원본·참고용이면 `references/`에 둔다.
 
 ```bash
+# 저장소 루트에서 실행 (shots/ 는 .gitignore 대상)
 CH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 for n in $(seq 1 12); do
   "$CH" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
