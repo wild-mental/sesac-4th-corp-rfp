@@ -38,10 +38,12 @@ open index.html
 │   └── diagrams/       덱에 들어가는 도식
 ├── docs/               문서
 │   └── guides/         별도 배포용 단독 HTML 가이드
-└── references/         원본·기획 레퍼런스 (덱에서 직접 쓰지 않음)
-    ├── ux-intro-slides/
-    ├── mobile-screens/
-    └── planning/
+├── references/         원본·기획 레퍼런스 (덱에서 직접 쓰지 않음)
+│   ├── ux-intro-slides/
+│   ├── mobile-screens/
+│   └── planning/
+└── prototype/          (.gitignore 제외) 별도 저장소 클론 위치
+    └── wild-bread-market/
 ```
 
 | 경로 | 내용 |
@@ -54,6 +56,10 @@ open index.html
 | `docs/DESIGN.md` | 디자인 정책 SSOT — 컬러 토큰, 타이포, 컴포넌트, 앱 목업 규칙 |
 | `docs/presentation-deck-structure.md` | 발표 스토리텔링 구조 (10장 목차 원안) |
 | `docs/guides/MAKJI_Cafe24_MVP_교육가이드.html` | 카페24 자사몰 연동 따라하기 가이드 (57쪽, 단일 파일) — 예제 몰 wildmental · 상품 16 기준, 실습 코드 전체 포함 |
+| `docs/cafe24-lab-work-plan.md` | 프로토타입 → AI-Native 가이드 작업 계획 |
+| `docs/goal01-prototyping.md` · `docs/goal02-guide-doc-renewal.md` | 두 단계 작업의 /goal 프롬프트 |
+| `docs/example-mall-info.md` | 예제 쇼핑몰 wildmental · 상품 16 식별값 |
+| `prototype/wild-bread-market/` | **별도 공개 저장소** [wild-mental/wild-bread-market](https://github.com/wild-mental/wild-bread-market) — UP/DOWN 예측 체험 목업 + 카페24 연동 프로토타입. 이 저장소에서는 `.gitignore`로 제외 |
 | `references/ux-intro-slides/` | UX 소개 슬라이드 원본 4장 (테마·목업 기준 레퍼런스) |
 | `references/mobile-screens/` | 모바일 화면 15종 원본 (사용자 U01~U10 · 관리자 A01~A05) |
 | `references/planning/` | 확장형 CJM, 5단계 스토리텔링 구조도 |
